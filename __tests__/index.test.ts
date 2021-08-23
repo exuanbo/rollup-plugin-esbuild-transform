@@ -193,13 +193,9 @@ it('should warn', async () => {
     ],
     {
       onwarn(warning) {
-        expect(warning.message).toMatchInlineSnapshot(`
-"[1m > /Users/xuanbo/repositories/rollup-plugin-esbuild-transform/__tests__/fixtures/Foo.tsx:27:28: [35mwarning: [0m[1mConverting \\"require\\" to \\"esm\\" is currently not supported
-[0m[37m    27 │ var import_bar = __toModule([32mrequire[37m(\\"./bar\\"));
-       ╵                             [32m~~~~~~~[37m
-[0m
-"
-`)
+        expect(warning.message).toMatch(
+          '/rollup-plugin-esbuild-transform/__tests__/fixtures/Foo.tsx'
+        )
       }
     }
   )
