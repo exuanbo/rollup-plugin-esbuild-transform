@@ -24,10 +24,10 @@
     "url": "git+https://github.com/exuanbo/rollup-plugin-esbuild-transform.git"
   },
   "keywords": [
+    "rollup",
     "esbuild",
     "rollup-plugin",
     "rollup-plugin-esbuild",
-    "rollup-plugin-transform",
     "rollup-plugin-esbuild-transform"
   ],
   "author": "exuanbo",
