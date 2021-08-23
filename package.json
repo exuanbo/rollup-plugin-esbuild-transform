@@ -1,0 +1,53 @@
+{
+  "name": "rollup-plugin-esbuild-transform",
+  "version": "0.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "require": "./dist/index.js",
+    "import": "./dist/index.mjs",
+    "types": "./dist/index.d.ts"
+  },
+  "scripts": {
+    "clean": "rm -rf .cache dist",
+    "dts": "tsc -p tsconfig.dts.json",
+    "bundle": "./scripts/build.js && rollup -c",
+    "build": "npm run clean && npm run dts && npm run bundle",
+    "lint": "ts-standardx",
+    "lint:fix": "ts-standardx --fix",
+    "test": "npm run lint && npm run build && jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/exuanbo/rollup-plugin-esbuild-transform.git"
+  },
+  "keywords": [],
+  "author": "exuanbo",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/exuanbo/rollup-plugin-esbuild-transform/issues"
+  },
+  "homepage": "https://github.com/exuanbo/rollup-plugin-esbuild-transform#readme",
+  "dependencies": {
+    "@rollup/pluginutils": "^4.1.1",
+    "source-map": "github:mozilla/source-map#58819f09018d56ef84dc41ba9c93f554e0645169"
+  },
+  "peerDependencies": {
+    "esbuild": ">=0.10.1",
+    "rollup": "^1.20.0 || ^2.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "27.0.1",
+    "@types/node": "16.7.1",
+    "esbuild": "0.12.22",
+    "jest": "27.0.6",
+    "rollup": "2.56.2",
+    "rollup-plugin-dts": "3.0.2",
+    "sourcemap-validator": "2.1.0",
+    "ts-jest": "27.0.5",
+    "ts-standardx": "0.7.9",
+    "typescript": "4.3.5"
+  }
+}
