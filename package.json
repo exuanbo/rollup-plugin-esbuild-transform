@@ -1,7 +1,7 @@
 {
   "name": "rollup-plugin-esbuild-transform",
   "version": "0.0.0",
-  "description": "",
+  "description": "Use esbuild with Rollup to transform any supported content types.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -23,7 +23,13 @@
     "type": "git",
     "url": "git+https://github.com/exuanbo/rollup-plugin-esbuild-transform.git"
   },
-  "keywords": [],
+  "keywords": [
+    "esbuild",
+    "rollup-plugin",
+    "rollup-plugin-esbuild",
+    "rollup-plugin-transform",
+    "rollup-plugin-esbuild-transform"
+  ],
   "author": "exuanbo",
   "license": "MIT",
   "bugs": {
