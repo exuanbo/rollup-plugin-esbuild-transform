@@ -45,7 +45,7 @@ function esbuildTransform(options: Options | Options[]): Plugin
 function esbuildTransform(options: Options | Options[]): Plugin {
   const _options = Array.isArray(options) ? options : [options]
 
-  const allTransformOptions = _options.map(
+  const transformOptionsArr = _options.map(
     ({ include, exclude, ...transformOptions }) => transformOptions
   )
 
@@ -74,39 +74,33 @@ function esbuildTransform(options: Options | Options[]): Plugin {
     },
 
     async transform(code, id) {
-      const [transformResult, isTransformed] = await allTransformOptions.reduce<
-        Promise<[TransformResult, boolean]>
-      >(async (result, transformOptions, index) => {
-        if (!filters[index](id)) {
-          return await result
-        }
-        const [{ code: prevCode, map: prevMap }] = await result
-        const {
-          code: transformedCode,
-          map,
-          warnings
-        } = await transform(prevCode, {
-          format: transformOptions.loader === 'json' ? 'esm' : undefined,
-          sourcefile: id,
-          sourcemap: true,
-          ...transformOptions
-        })
-        if (warnings.length > 0) {
-          const messages = await formatMessages(warnings, {
-            kind: 'warning',
-            color: true
-          })
-          messages.forEach(message => this.warn(message))
-        }
-        return [
-          {
-            code: transformedCode,
-            map: map === '' ? null : prevMap === null ? map : await merge(prevMap, map)
-          },
-          true
-        ]
-      }, Promise.resolve([{ code, map: null }, false]))
-      return isTransformed ? transformResult : null
+      const matched = transformOptionsArr.filter((_, index) => filters[index](id))
+      return matched.length > 0
+        ? await matched.reduce<Promise<TransformResult>>(async (result, transformOptions) => {
+            const { code: prevCode, map: prevMap } = await result
+            const {
+              code: transformedCode,
+              map,
+              warnings
+            } = await transform(prevCode, {
+              format: transformOptions.loader === 'json' ? 'esm' : undefined,
+              sourcefile: id,
+              sourcemap: true,
+              ...transformOptions
+            })
+            if (warnings.length > 0) {
+              const messages = await formatMessages(warnings, {
+                kind: 'warning',
+                color: true
+              })
+              messages.forEach(message => this.warn(message))
+            }
+            return {
+              code: transformedCode,
+              map: map === '' ? null : prevMap === null ? map : await merge(prevMap, map)
+            }
+          }, Promise.resolve({ code, map: null }))
+        : null
     }
   }
 }
