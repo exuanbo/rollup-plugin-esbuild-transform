@@ -61,7 +61,7 @@ function esbuildTransform(options: Options | Options[]): Plugin {
           if (!fs.statSync(resolved).isDirectory()) {
             return resolved
           }
-          return resolveFilename(resolved, scriptLoaders, /* index */ true)
+          return resolveFilename(resolved, scriptLoaders, /* index: */ true)
         }
         return resolveFilename(resolved, loaders)
       }

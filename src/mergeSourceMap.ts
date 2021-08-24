@@ -8,10 +8,8 @@ export const merge = async (map: string | RawSourceMap, newMap: string): Promise
   const newMapConsumer = await new SourceMapConsumer(newRawMap)
 
   const mergedMapGenerator = new SourceMapGenerator({
-    // file: oldRawMap.file,
     sourceRoot: rawMap.sourceRoot
   })
-
   mapConsumer.sources.forEach(source => {
     const sourceContent = mapConsumer.sourceContentFor(source)!
     mergedMapGenerator.setSourceContent(source, sourceContent)
@@ -22,7 +20,6 @@ export const merge = async (map: string | RawSourceMap, newMap: string): Promise
       line: originalLine,
       column: originalColumn
     })
-
     if (originalPosition.source === null) {
       return
     }
@@ -37,7 +34,7 @@ export const merge = async (map: string | RawSourceMap, newMap: string): Promise
         column: originalPosition.column!
       },
       source: originalPosition.source
-      // name: originalPosition.name!
+      // name: originalPosition.name ?? undefined
     })
   })
 
