@@ -22,6 +22,8 @@ const SCRIPT_LOADERS = ['ts', 'tsx', 'js', 'jsx'] as const
 const DEFAULT_EXCLUDE_REGEXP = /node_modules/
 const VALID_PATH_REGEXP = new RegExp(`^[.\\${path.sep}]`)
 
+const getExtensionRegExp = (loader: Loader): RegExp => new RegExp(`\\.${loader}$`)
+
 const resolveFilename = (
   resolved: string,
   loaders: Iterable<Loader>,
@@ -41,15 +43,18 @@ function esbuildTransform(options: Options[]): Plugin
 function esbuildTransform(options: Options | Options[]): Plugin
 
 function esbuildTransform(options: Options | Options[]): Plugin {
-  const pluginOptions = Array.isArray(options) ? options : [options]
+  const _options = Array.isArray(options) ? options : [options]
 
-  const loaders = new Set(pluginOptions.map(({ loader }) => loader))
+  const allTransformOptions = _options.map(
+    ({ include, exclude, ...transformOptions }) => transformOptions
+  )
+
+  const loaders = new Set(_options.map(({ loader }) => loader))
   const scriptLoaders = SCRIPT_LOADERS.filter(loader => loaders.has(loader))
 
-  const filters = pluginOptions.map(({ include, exclude, loader }) => {
-    const loaderExtensionRegExp = new RegExp(`\\.${loader}$`)
-    return createFilter(include ?? loaderExtensionRegExp, exclude ?? DEFAULT_EXCLUDE_REGEXP)
-  })
+  const filters = _options.map(({ include, exclude, loader }) =>
+    createFilter(include ?? getExtensionRegExp(loader), exclude ?? DEFAULT_EXCLUDE_REGEXP)
+  )
 
   return {
     name: 'esbuild-transform',
@@ -69,17 +74,16 @@ function esbuildTransform(options: Options | Options[]): Plugin {
     },
 
     async transform(code, id) {
-      const [transformResult, isTransformed] = await pluginOptions.reduce<
+      const [transformResult, isTransformed] = await allTransformOptions.reduce<
         Promise<[TransformResult, boolean]>
-      >(async (result, pluginOption, index) => {
+      >(async (result, transformOptions, index) => {
         if (!filters[index](id)) {
           return await result
         }
-        const [{ code: prevCode, map }] = await result
-        const { include, exclude, ...transformOptions } = pluginOption
+        const [{ code: prevCode, map: prevMap }] = await result
         const {
           code: transformedCode,
-          map: newMap,
+          map,
           warnings
         } = await transform(prevCode, {
           format: transformOptions.loader === 'json' ? 'esm' : undefined,
@@ -97,7 +101,7 @@ function esbuildTransform(options: Options | Options[]): Plugin {
         return [
           {
             code: transformedCode,
-            map: newMap === '' ? null : map === null ? newMap : await merge(map, newMap)
+            map: map === '' ? null : prevMap === null ? map : await merge(prevMap, map)
           },
           true
         ]
