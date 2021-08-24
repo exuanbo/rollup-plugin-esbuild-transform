@@ -37,10 +37,10 @@ export default {
       },
       {
         loader: 'js',
-        include: /\.tsx?$/,
+        include: /\.[jt]sx?$/,
         target: 'es2017'
       }
-    ]) // like a pipeline? 🤔
+    ]) // like webpack? 🤔
   ]
 }
 ```
@@ -96,9 +96,9 @@ It takes priority over `include`.
 
 ## Why
 
-[esbuild](https://esbuild.github.io/api/#build-api) as a bundler has some problems such as [#475](https://github.com/evanw/esbuild/issues/475) which still has not been fixed since last year.
+[`esbuild`](https://esbuild.github.io/api/#build-api) as a bundler has some problems such as [#475](https://github.com/evanw/esbuild/issues/475) which still has not been fixed since last year.
 
-[rollup-plugin-esbuild](https://github.com/egoist/rollup-plugin-esbuild) is great but there is no way to use multiple `loader` with different options.
+[`rollup-plugin-esbuild`](https://github.com/egoist/rollup-plugin-esbuild) is great but there is no simpler way to use multiple `loader` with different options, and for some reason it does not provide all available options from `esbuild`.
 
 ## License
 
