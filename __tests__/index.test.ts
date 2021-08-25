@@ -179,10 +179,10 @@ it('should warn', async () => {
       format: 'esm'
     },
     {
-      input: path.join(__dirname, 'fixtures/cjs.js'),
+      input: path.join(__dirname, 'fixtures/main.cjs'),
       onwarn(warning) {
         expect(warning.message).toMatch(
-          '/rollup-plugin-esbuild-transform/__tests__/fixtures/cjs.js'
+          '/rollup-plugin-esbuild-transform/__tests__/fixtures/main.cjs'
         )
       }
     }

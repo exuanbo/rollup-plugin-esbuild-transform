@@ -15,7 +15,8 @@ const SCRIPT_LOADERS = ['ts', 'tsx', 'js', 'jsx'] as const
 const DEFAULT_EXCLUDE_REGEXP = /node_modules/
 const VALID_PATH_REGEXP = new RegExp(`^[.\\${path.sep}]`)
 
-const getExtensionRegExp = (loader: Loader): RegExp => new RegExp(`\\.${loader}$`)
+const getExtensionRegExp = (loader: Loader): RegExp =>
+  new RegExp(`\\.${loader === 'js' ? '(?:js|cjs|mjs)' : loader}$`)
 
 const resolveFilename = (
   resolved: string,
