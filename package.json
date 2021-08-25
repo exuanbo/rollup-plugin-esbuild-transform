@@ -37,8 +37,7 @@
   },
   "homepage": "https://github.com/exuanbo/rollup-plugin-esbuild-transform#readme",
   "dependencies": {
-    "@rollup/pluginutils": "^4.1.1",
-    "source-map": "^0.8.0-beta.0"
+    "@rollup/pluginutils": "^4.1.1"
   },
   "peerDependencies": {
     "esbuild": ">=0.10.1",
