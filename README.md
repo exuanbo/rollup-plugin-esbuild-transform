@@ -73,9 +73,31 @@ This plugin uses the same options from [esbuild Transform API](https://esbuild.g
 
 ### `include`
 
-Default to <code>new RegExp(\`\\.\${loader}\$\`)</code>
+Default to <code>new RegExp(\`\\\\.\${loader === 'js' ? '(?:js|cjs|mjs)' : loader}\$\`)</code>
 
-If a file is matched by more than one pattern (as the example above), it will be transformed multiple times in the same order and the sourcemaps will be merged.
+If a file is matched by more than one pattern (as the example above), the options other than `loader` will be merged using `Object.assign()`.
+
+```js
+// for index.tsx
+[
+  {
+    loader: 'tsx',
+    banner: "import * as React from 'react'"
+  },
+  {
+    loader: 'js',
+    include: /\.[jt]sx?$/,
+    target: 'es2017'
+  }
+]
+
+// the final transform options will become
+{
+  loader: 'tsx',
+  banner: "import * as React from 'react'",
+  target: 'es2017'
+}
+```
 
 ### `exclude`
 
