@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+'use strict'
 
 const { build } = require('esbuild')
 const pkg = require('../package.json')
