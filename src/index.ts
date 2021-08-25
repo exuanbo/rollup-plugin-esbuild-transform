@@ -2,19 +2,12 @@ import fs from 'fs'
 import path from 'path'
 import { Loader, TransformOptions, transform, formatMessages } from 'esbuild'
 import { FilterPattern, createFilter } from '@rollup/pluginutils'
-import type { RawSourceMap } from 'source-map'
 import type { Plugin } from 'rollup'
-import { merge } from './mergeSourceMap'
 
 export interface Options extends TransformOptions {
   loader: Loader
   include?: FilterPattern
   exclude?: FilterPattern
-}
-
-interface TransformResult {
-  code: string
-  map: string | RawSourceMap | null
 }
 
 const SCRIPT_LOADERS = ['ts', 'tsx', 'js', 'jsx'] as const
@@ -66,7 +59,7 @@ function esbuildTransform(options: Options | Options[]): Plugin {
           if (!fs.statSync(resolved).isDirectory()) {
             return resolved
           }
-          return resolveFilename(resolved, scriptLoaders, /* index: */ true)
+          return resolveFilename(resolved, scriptLoaders, /* isIndex */ true)
         }
         return resolveFilename(resolved, loaders)
       }
@@ -74,33 +67,43 @@ function esbuildTransform(options: Options | Options[]): Plugin {
     },
 
     async transform(code, id) {
-      const matched = transformOptionsArr.filter((_, index) => filters[index](id))
-      return matched.length > 0
-        ? await matched.reduce<Promise<TransformResult>>(async (result, transformOptions) => {
-            const { code: prevCode, map: prevMap } = await result
-            const {
-              code: transformedCode,
-              map,
-              warnings
-            } = await transform(prevCode, {
-              format: transformOptions.loader === 'json' ? 'esm' : undefined,
-              sourcefile: id,
-              sourcemap: true,
-              ...transformOptions
-            })
-            if (warnings.length > 0) {
-              const messages = await formatMessages(warnings, {
-                kind: 'warning',
-                color: true
-              })
-              messages.forEach(message => this.warn(message))
-            }
-            return {
-              code: transformedCode,
-              map: map === '' ? null : prevMap === null ? map : await merge(prevMap, map)
-            }
-          }, Promise.resolve({ code, map: null }))
-        : null
+      const transformOptions = transformOptionsArr.reduce<TransformOptions | null>(
+        (result, transformOptions, index) => {
+          if (!filters[index](id)) {
+            return result
+          }
+          if (result === null) {
+            return transformOptions
+          }
+          const { loader, ...loaderOmitted } = transformOptions
+          return Object.assign(result, loaderOmitted)
+        },
+        null
+      )
+      if (transformOptions === null) {
+        return null
+      }
+      const {
+        code: transformedCode,
+        map,
+        warnings
+      } = await transform(code, {
+        format: transformOptions.loader === 'json' ? 'esm' : undefined,
+        sourcefile: id,
+        sourcemap: true,
+        ...transformOptions
+      })
+      if (warnings.length > 0) {
+        const messages = await formatMessages(warnings, {
+          kind: 'warning',
+          color: true
+        })
+        messages.forEach(message => this.warn(message))
+      }
+      return {
+        code: transformedCode,
+        map: map === '' ? null : map
+      }
     }
   }
 }

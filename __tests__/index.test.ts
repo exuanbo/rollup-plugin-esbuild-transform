@@ -73,7 +73,7 @@ it('should transform', async () => {
   `)
 })
 
-it('should transform then minify', async () => {
+it('should transform and minify', async () => {
   const output = await build([
     {
       loader: 'json'
@@ -87,26 +87,26 @@ it('should transform then minify', async () => {
     },
     {
       loader: 'jsx',
-      include: [/\.[jt]sx?$/, /\.json$/],
+      include: /\.[jt]s(?:x|on)?$/,
       minify: true
     }
   ])
   expect(output[0].code).toMatchInlineSnapshot(`
-    "var e = \`.qux{display:flex}
+    "var e$1 = \`.qux{display:flex}
     \`;
 
-    var a=!0;
+    var e=!0;
 
-    class s{render(){return React.createElement(React.Fragment,null,React.createElement(\\"style\\",null,e),React.createElement(\\"div\\",{className:\\"qux\\"},a))}}
+    class s{render(){return React.createElement(React.Fragment,null,React.createElement(\\"style\\",null,e$1),React.createElement(\\"div\\",{className:\\"qux\\"},e))}}
 
-    class r{render(){return React.createElement(\\"div\\",{className:\\"bar\\"},React.createElement(s,null))}}
+    class a{render(){return React.createElement(\\"div\\",{className:\\"bar\\"},React.createElement(s,null))}}
 
-    console.log(React.createElement(r,null));
+    console.log(React.createElement(a,null));
     "
   `)
 })
 
-it('should transform then add banner', async () => {
+it('should transform and add banner', async () => {
   const output = await build([
     {
       loader: 'json'
@@ -116,12 +116,12 @@ it('should transform then add banner', async () => {
     },
     {
       loader: 'jsx',
-      include: /\.[jt]sx?$/
+      include: /\.jsx?$/
     },
     {
       loader: 'js',
-      banner: '/**\n * @license MIT\n */',
-      include: /\.[jt]sx$/
+      include: /\.[jt]sx$/,
+      banner: '/**\n * @license MIT\n */'
     }
   ])
   expect(output[0].code).toMatchInlineSnapshot(`
@@ -172,29 +172,17 @@ it('should throw error if id can not be resolve', async () => {
 })
 
 it('should warn', async () => {
+  expect.assertions(1)
   await build(
-    [
-      {
-        loader: 'json'
-      },
-      {
-        loader: 'tsx',
-        format: 'cjs'
-      },
-      {
-        loader: 'jsx',
-        format: 'esm',
-        include: /\.tsx$/
-      },
-      {
-        loader: 'jsx',
-        include: /\.jsx?$/
-      }
-    ],
     {
+      loader: 'js',
+      format: 'esm'
+    },
+    {
+      input: path.join(__dirname, 'fixtures/cjs.js'),
       onwarn(warning) {
         expect(warning.message).toMatch(
-          '/rollup-plugin-esbuild-transform/__tests__/fixtures/Foo.tsx'
+          '/rollup-plugin-esbuild-transform/__tests__/fixtures/cjs.js'
         )
       }
     }
@@ -203,12 +191,10 @@ it('should warn', async () => {
 
 it('should not generate sourcemap if option is set', async () => {
   const output = await build(
-    [
-      {
-        loader: 'json',
-        sourcemap: false
-      }
-    ],
+    {
+      loader: 'json',
+      sourcemap: false
+    },
     {
       input: path.join(__dirname, 'fixtures/baz.json'),
       output: {
@@ -221,12 +207,10 @@ it('should not generate sourcemap if option is set', async () => {
 
 it('should not transform exclude is set', async () => {
   const output = await build(
-    [
-      {
-        loader: 'json',
-        exclude: /\.json$/
-      }
-    ],
+    {
+      loader: 'json',
+      exclude: /\.json$/
+    },
     {
       input: path.join(__dirname, 'fixtures/baz.json'),
       plugins: [

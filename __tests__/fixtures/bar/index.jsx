@@ -1,7 +1,5 @@
-/* eslint-disable */
-
-import style from "./index.css";
-import { qux } from "../baz.json";
+import style from './index.css'
+import { qux } from '../baz.json'
 
 export default class Bar {
   render() {

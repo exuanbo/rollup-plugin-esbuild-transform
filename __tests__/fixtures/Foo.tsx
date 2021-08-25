@@ -1,5 +1,3 @@
-/* eslint-disable */
-
 // @ts-expect-error
 import Bar from './bar'
 
