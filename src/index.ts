@@ -13,7 +13,7 @@ export interface Options extends TransformOptions {
 const SCRIPT_LOADERS = ['ts', 'tsx', 'js', 'jsx'] as const
 
 const DEFAULT_EXCLUDE_REGEXP = /node_modules/
-const VALID_PATH_REGEXP = new RegExp(`^[.\\${path.sep}]`)
+const VALID_PATH_REGEXP = /^[./\\]/
 
 const getExtensionRegExp = (loader: Loader): RegExp =>
   new RegExp(`\\.${loader === 'js' ? '(?:js|cjs|mjs)' : loader}$`)
