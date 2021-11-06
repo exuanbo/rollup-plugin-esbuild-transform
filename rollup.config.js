@@ -5,7 +5,7 @@ import esbuild from './.cache/index.js'
 export default [
   {
     external: [
-      'fs',
+      'fs/promises',
       'path',
       ...Object.keys(pkg.dependencies),
       ...Object.keys(pkg.peerDependencies)

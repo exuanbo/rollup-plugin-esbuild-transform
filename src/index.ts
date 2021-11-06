@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'fs/promises'
 import path from 'path'
 import { Loader, TransformOptions, transform, formatMessages } from 'esbuild'
 import { FilterPattern, createFilter } from '@rollup/pluginutils'
@@ -18,16 +18,17 @@ const VALID_PATH_REGEXP = /^[./\\]/
 const getExtensionRegExp = (loader: Loader): RegExp =>
   new RegExp(`\\.${loader === 'js' ? '(?:js|cjs|mjs)' : loader}$`)
 
-const resolveFilename = (
+const resolveFilename = async (
   resolved: string,
   loaders: Iterable<Loader>,
   isIndex = false
-): string | null => {
+): Promise<string | null> => {
   for (const loader of loaders) {
     const resolvedFilename = `${path.join(resolved, isIndex ? 'index' : '')}.${loader}`
-    if (fs.existsSync(resolvedFilename)) {
+    try {
+      await fs.access(resolvedFilename)
       return resolvedFilename
-    }
+    } catch {}
   }
   return null
 }
@@ -56,13 +57,15 @@ function esbuildTransform(options: Options | Options[]): Plugin {
     async resolveId(source, importer) {
       if (importer !== undefined && VALID_PATH_REGEXP.test(source)) {
         const resolved = path.resolve(path.dirname(importer), source)
-        if (fs.existsSync(resolved)) {
-          if (!fs.statSync(resolved).isDirectory()) {
-            return resolved
+        try {
+          const resolvedStats = await fs.stat(resolved)
+          if (resolvedStats.isDirectory()) {
+            return await resolveFilename(resolved, scriptLoaders, /* isIndex */ true)
           }
-          return resolveFilename(resolved, scriptLoaders, /* isIndex */ true)
+          return resolved
+        } catch {
+          return await resolveFilename(resolved, loaders)
         }
-        return resolveFilename(resolved, loaders)
       }
       return null
     },
@@ -99,7 +102,9 @@ function esbuildTransform(options: Options | Options[]): Plugin {
           kind: 'warning',
           color: true
         })
-        messages.forEach(message => this.warn(message))
+        messages.forEach(message => {
+          this.warn(message)
+        })
       }
       return {
         code: transformedCode,
