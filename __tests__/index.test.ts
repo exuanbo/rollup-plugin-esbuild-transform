@@ -1,33 +1,31 @@
 import path from 'path'
-import { RollupOptions, RollupOutput, rollup } from 'rollup'
+import { RollupOptions, RollupOutput, Plugin, rollup } from 'rollup'
 import esbuild, { Options } from '../src'
 
-const INDEX_JS_PATH = path.join(__dirname, 'fixtures/index.js')
+const css = (): Plugin => {
+  return {
+    name: 'css',
+    transform(code, id) {
+      if (path.extname(id) === '.css') {
+        return {
+          code: `export default \`${code}\``
+        }
+      }
+      return null
+    }
+  }
+}
 
 const build = async (
   options: Options | Options[],
   rollupOptions: RollupOptions = {}
 ): Promise<RollupOutput['output']> => {
   const build = await rollup({
-    input: INDEX_JS_PATH,
+    input: path.join(__dirname, 'fixtures/index.js'),
     ...rollupOptions,
-    plugins: [
-      esbuild(options),
-      {
-        name: 'css',
-        transform(code, id) {
-          if (path.extname(id) === '.css') {
-            return {
-              code: `export default \`${code}\``
-            }
-          }
-          return null
-        }
-      },
-      ...(rollupOptions.plugins ?? [])
-    ]
+    plugins: [esbuild(options), css(), ...(rollupOptions.plugins ?? [])]
   })
-  const { output } = await build.generate({ format: 'esm' })
+  const { output } = await build.generate({ format: 'es' })
   return output
 }
 
@@ -60,11 +58,20 @@ it('should transform', async () => {
       }
     }
 
+    const utils = {
+      foo() {
+        return 'bar'
+      }
+    };
+
     class Foo {
+      constructor() {
+        this.foo = utils.foo();
+      }
       render() {
         return /* @__PURE__ */ React.createElement(\\"div\\", {
           className: \\"bar\\"
-        }, /* @__PURE__ */ React.createElement(Bar, null));
+        }, this.foo, /* @__PURE__ */ React.createElement(Bar, null));
       }
     }
 
@@ -87,7 +94,7 @@ it('should transform and minify', async () => {
     },
     {
       loader: 'jsx',
-      include: /\.[jt]s(?:x|on)?$/,
+      include: /\.m?[jt]s(?:x|on)?$/,
       minify: true
     }
   ])
@@ -99,9 +106,11 @@ it('should transform and minify', async () => {
 
     class s{render(){return React.createElement(React.Fragment,null,React.createElement(\\"style\\",null,e$1),React.createElement(\\"div\\",{className:\\"qux\\"},e))}}
 
-    class a{render(){return React.createElement(\\"div\\",{className:\\"bar\\"},React.createElement(s,null))}}
+    const utils={foo(){return \\"bar\\"}};
 
-    console.log(React.createElement(a,null));
+    class t{constructor(){this.foo=utils.foo();}render(){return React.createElement(\\"div\\",{className:\\"bar\\"},this.foo,React.createElement(s,null))}}
+
+    console.log(React.createElement(t,null));
     "
   `)
 })
@@ -143,14 +152,23 @@ it('should transform and add banner', async () => {
       }
     }
 
+    const utils = {
+      foo() {
+        return 'bar'
+      }
+    };
+
     /**
      * @license MIT
      */
     class Foo {
+      constructor() {
+        this.foo = utils.foo();
+      }
       render() {
         return /* @__PURE__ */ React.createElement(\\"div\\", {
           className: \\"bar\\"
-        }, /* @__PURE__ */ React.createElement(Bar, null));
+        }, this.foo, /* @__PURE__ */ React.createElement(Bar, null));
       }
     }
 
@@ -167,7 +185,9 @@ it('should throw error if id can not be resolve', async () => {
       include: /\.jsx?$/
     })
   } catch (err) {
-    expect(err.message).toBe("Could not resolve './Foo' from __tests__/fixtures/index.js")
+    expect((err as Error).message).toBe(
+      "Could not resolve './Foo' from __tests__/fixtures/index.js"
+    )
   }
 })
 
