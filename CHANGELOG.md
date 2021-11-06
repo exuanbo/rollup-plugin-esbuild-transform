@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.0](https://github.com/exuanbo/rollup-plugin-esbuild-transform/compare/v1.1.1...v1.2.0) (2021-11-06)
+
+### Features
+
+- Support resolve TypeScript files with extension `cts` and `mts` (requires esbuild >= 0.13.4).
+
 ## [1.1.1](https://github.com/exuanbo/rollup-plugin-esbuild-transform/compare/v1.1.0...v1.1.1) (2021-08-26)
 
 ### Bug Fixes
