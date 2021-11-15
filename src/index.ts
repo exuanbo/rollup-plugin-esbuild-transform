@@ -110,7 +110,7 @@ function esbuildTransform(options: Options | Options[]): Plugin {
       }
       return {
         code: transformedCode,
-        map: map === '' ? null : map
+        map: map === '' ? undefined : map
       }
     }
   }
