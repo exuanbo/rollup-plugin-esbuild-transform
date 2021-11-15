@@ -38,8 +38,7 @@ it('should transform', async () => {
       loader: 'tsx'
     },
     {
-      loader: 'jsx',
-      include: /\.jsx?$/
+      loader: 'jsx'
     }
   ])
   expect(output[0].code).toMatchInlineSnapshot(`
@@ -75,7 +74,7 @@ it('should transform', async () => {
       }
     }
 
-    console.log(/* @__PURE__ */ React.createElement(Foo, null));
+    console.log(React.createElement(Foo, null));
     "
   `)
 })
@@ -93,7 +92,10 @@ it('should transform and minify', async () => {
       loader: 'tsx'
     },
     {
-      loader: 'jsx',
+      loader: 'jsx'
+    },
+    {
+      loader: 'js',
       include: /\.m?[jt]s(?:x|on)?$/,
       minify: true
     }
@@ -124,8 +126,7 @@ it('should transform and add banner', async () => {
       loader: 'tsx'
     },
     {
-      loader: 'jsx',
-      include: /\.jsx?$/
+      loader: 'jsx'
     },
     {
       loader: 'js',
@@ -172,7 +173,7 @@ it('should transform and add banner', async () => {
       }
     }
 
-    console.log(/* @__PURE__ */ React.createElement(Foo, null));
+    console.log(React.createElement(Foo, null));
     "
   `)
 })
@@ -181,8 +182,7 @@ it('should throw error if id can not be resolve', async () => {
   expect.assertions(1)
   try {
     await build({
-      loader: 'jsx',
-      include: /\.jsx?$/
+      loader: 'jsx'
     })
   } catch (err) {
     expect((err as Error).message).toBe(

@@ -1,3 +1,3 @@
 import Foo from './Foo'
 
-console.log(<Foo />)
+console.log(React.createElement(Foo, null))
