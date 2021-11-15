@@ -42,7 +42,7 @@ function esbuildTransform(options: Options | Options[]): Plugin
 function esbuildTransform(options: Options | Options[]): Plugin {
   const _options = Array.isArray(options) ? options : [options]
 
-  const transformOptionsArr = _options.map(
+  const allTransformOptions = _options.map(
     ({ include, exclude, ...transformOptions }) => transformOptions
   )
 
@@ -73,7 +73,7 @@ function esbuildTransform(options: Options | Options[]): Plugin {
     },
 
     async transform(code, id) {
-      const transformOptions = transformOptionsArr.reduce<TransformOptions | null>(
+      const transformOptions = allTransformOptions.reduce<TransformOptions | null>(
         (result, transformOptions, index) => {
           if (!filters[index](id)) {
             return result
