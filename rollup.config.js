@@ -25,7 +25,7 @@ export default [
     plugins: [
       esbuild({
         loader: 'ts',
-        target: 'es2017'
+        target: 'node10'
       })
     ]
   },
