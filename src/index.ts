@@ -23,11 +23,10 @@ const getExtensionRegExp = (loader: Loader): RegExp =>
 
 const resolveFilename = async (
   resolved: string,
-  loaders: Iterable<Loader>,
-  isIndex = false
+  loaders: Iterable<Loader>
 ): Promise<string | null> => {
   for (const loader of loaders) {
-    const resolvedFilename = `${path.join(resolved, isIndex ? 'index' : '')}.${loader}`
+    const resolvedFilename = `${resolved}.${loader}`
     try {
       await fs.access(resolvedFilename)
       return resolvedFilename
@@ -63,7 +62,7 @@ function esbuildTransform(options: Options | Options[]): Plugin {
         try {
           const resolvedStats = await fs.stat(resolved)
           if (resolvedStats.isDirectory()) {
-            return await resolveFilename(resolved, scriptLoaders, /* isIndex */ true)
+            return await resolveFilename(path.join(resolved, 'index'), scriptLoaders)
           }
           return resolved
         } catch {
