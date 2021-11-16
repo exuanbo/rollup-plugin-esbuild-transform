@@ -13,11 +13,10 @@ const SCRIPT_LOADERS = ['js', 'jsx', 'ts', 'tsx'] as const
 
 const DEFAULT_EXCLUDE_REGEXP = /node_modules/
 const VALID_PATH_REGEXP = /^[./\\]/
-const SCRIPT_LOADER_REGEXP = /^[jt]s$/
 
 const getExtensionRegExp = (loader: Loader): RegExp =>
   new RegExp(
-    `\\.${SCRIPT_LOADER_REGEXP.test(loader) ? `(?:${loader}|c${loader}|m${loader})` : loader}$`
+    `\\.${loader === 'js' || loader === 'ts' ? `(?:${loader}|c${loader}|m${loader})` : loader}$`
   )
 
 const resolveFilename = async (
