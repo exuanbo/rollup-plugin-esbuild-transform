@@ -67,7 +67,7 @@ This plugin uses the same options from [esbuild Transform API](https://esbuild.g
 
 ### `include`
 
-Default to <code>new RegExp(\`\\\\.\${loader === 'js' ? '(?:js|cjs|mjs)' : loader}\$\`)</code>
+Default to <code>new RegExp(\`\\\\.\${loader}\$\`)</code> (supports `.cjs`, `.mjs`, `.cts`, `.mts`)
 
 If a file is matched by more than one pattern (as the example above), the options other than `loader` will be merged using `Object.assign()`.
 
