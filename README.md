@@ -29,18 +29,13 @@ export default {
         minifyWhitespace: true
       },
       {
-        loader: 'ts'
-      },
-      {
         loader: 'tsx',
         banner: "import * as React from 'react'"
       },
       {
-        loader: 'js',
-        include: /\.[jt]sx?$/,
-        target: 'es2017'
+        loader: 'ts'
       }
-    ]) // like webpack? 🤔
+    ])
   ]
 }
 ```
@@ -50,14 +45,13 @@ export default {
 ```ts
 // index.d.ts
 
-import { TransformOptions, Loader } from 'esbuild'
+import { TransformOptions } from 'esbuild'
 import { FilterPattern } from '@rollup/pluginutils'
 import { Plugin } from 'rollup'
 
 interface Options extends TransformOptions {
-    loader: Loader
-    include?: FilterPattern
-    exclude?: FilterPattern
+  include?: FilterPattern
+  exclude?: FilterPattern
 }
 
 declare function esbuildTransform(options: Options): Plugin
@@ -67,7 +61,7 @@ declare function esbuildTransform(options: Options | Options[]): Plugin
 export { Options, esbuildTransform as default }
 ```
 
-This plugin uses the same options from [esbuild Transform API](https://esbuild.github.io/api/#transform-api), except for `loader` which is required here.
+This plugin uses the same options from [esbuild Transform API](https://esbuild.github.io/api/#transform-api).
 
 `include` and `exclude` are [`picomatch`](https://github.com/micromatch/picomatch#globbing-features) patterns. They can be `string | RegExp | Array<string | RegExp>`. When supplied they will override the default values.
 
@@ -85,9 +79,9 @@ If a file is matched by more than one pattern (as the example above), the option
     banner: "import * as React from 'react'"
   },
   {
-    loader: 'js',
-    include: /\.[jt]sx?$/,
-    target: 'es2017'
+    loader: 'ts',
+    include: /\.tsx?$/,
+    minify: true
   }
 ]
 
@@ -95,7 +89,7 @@ If a file is matched by more than one pattern (as the example above), the option
 {
   loader: 'tsx',
   banner: "import * as React from 'react'",
-  target: 'es2017'
+  minify: true
 }
 ```
 

@@ -5,7 +5,6 @@ import { FilterPattern, createFilter } from '@rollup/pluginutils'
 import type { Plugin } from 'rollup'
 
 export interface Options extends TransformOptions {
-  loader: Loader
   include?: FilterPattern
   exclude?: FilterPattern
 }
@@ -46,11 +45,11 @@ function esbuildTransform(options: Options | Options[]): Plugin {
     ({ include, exclude, ...transformOptions }) => transformOptions
   )
 
-  const loaders = new Set(_options.map(({ loader }) => loader))
+  const loaders = new Set(_options.map(({ loader }) => loader ?? 'js'))
   const scriptLoaders = SCRIPT_LOADERS.filter(loader => loaders.has(loader))
 
   const filters = _options.map(({ include, exclude, loader }) =>
-    createFilter(include ?? getExtensionRegExp(loader), exclude ?? DEFAULT_EXCLUDE_REGEXP)
+    createFilter(include ?? getExtensionRegExp(loader ?? 'js'), exclude ?? DEFAULT_EXCLUDE_REGEXP)
   )
 
   return {

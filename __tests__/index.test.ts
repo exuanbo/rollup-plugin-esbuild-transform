@@ -95,7 +95,6 @@ it('should transform and minify', async () => {
       loader: 'jsx'
     },
     {
-      loader: 'js',
       include: /\.m?[jt]s(?:x|on)?$/,
       minify: true
     }
@@ -129,7 +128,6 @@ it('should transform and add banner', async () => {
       loader: 'jsx'
     },
     {
-      loader: 'js',
       include: /\.[jt]sx$/,
       banner: '/**\n * @license MIT\n */'
     }
@@ -181,9 +179,7 @@ it('should transform and add banner', async () => {
 it('should throw error if id can not be resolve', async () => {
   expect.assertions(1)
   try {
-    await build({
-      loader: 'jsx'
-    })
+    await build({})
   } catch (err) {
     expect((err as Error).message).toBe(
       "Could not resolve './Foo' from __tests__/fixtures/index.js"
@@ -195,7 +191,6 @@ it('should warn', async () => {
   expect.assertions(1)
   await build(
     {
-      loader: 'js',
       format: 'esm'
     },
     {
