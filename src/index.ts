@@ -34,11 +34,11 @@ const resolveFilename = async (
   return null
 }
 
-function esbuildTransform(options: Options): Plugin
-function esbuildTransform(options: Options[]): Plugin
-function esbuildTransform(options: Options | Options[]): Plugin
+function esbuildTransform(options?: Options): Plugin
+function esbuildTransform(options?: Options[]): Plugin
+function esbuildTransform(options?: Options | Options[]): Plugin
 
-function esbuildTransform(options: Options | Options[]): Plugin {
+function esbuildTransform(options: Options | Options[] = {}): Plugin {
   const _options = Array.isArray(options) ? options : [options]
 
   const allTransformOptions = _options.map(

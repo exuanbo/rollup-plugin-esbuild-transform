@@ -17,7 +17,7 @@ const css = (): Plugin => {
 }
 
 const build = async (
-  options: Options | Options[],
+  options?: Options | Options[],
   rollupOptions: RollupOptions = {}
 ): Promise<RollupOutput['output']> => {
   const build = await rollup({
@@ -179,7 +179,7 @@ it('should transform and add banner', async () => {
 it('should throw error if id can not be resolve', async () => {
   expect.assertions(1)
   try {
-    await build({})
+    await build()
   } catch (err) {
     expect((err as Error).message).toBe(
       "Could not resolve './Foo' from __tests__/fixtures/index.js"
