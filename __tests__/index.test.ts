@@ -23,6 +23,7 @@ const build = async (
   const build = await rollup({
     input: path.join(__dirname, 'fixtures/index.js'),
     ...rollupOptions,
+    external: ['react', 'react-dom'],
     plugins: [esbuild(options), css(), ...(rollupOptions.plugins ?? [])]
   })
   const { output } = await build.generate({ format: 'es' })
@@ -35,46 +36,41 @@ it('should transform', async () => {
       loader: 'json'
     },
     {
-      loader: 'tsx'
+      loader: 'tsx',
+      banner: "import React from 'react'"
     },
     {
       loader: 'jsx'
     }
   ])
   expect(output[0].code).toMatchInlineSnapshot(`
-    "var style = \`.qux {
+    "import ReactDOM from 'react-dom';
+    import React$1 from 'react';
+
+    var style = \`.qux {
       display: flex;
     }
     \`;
 
     var qux = true;
 
-    class Bar {
+    class Bar extends React$1.Component {
       render() {
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(\\"style\\", null, style), /* @__PURE__ */ React.createElement(\\"div\\", {
+        return /* @__PURE__ */ React$1.createElement(React$1.Fragment, null, /* @__PURE__ */ React$1.createElement(\\"style\\", null, style), /* @__PURE__ */ React$1.createElement(\\"div\\", {
           className: \\"qux\\"
         }, qux));
       }
     }
 
-    const utils = {
-      foo() {
-        return 'bar'
-      }
-    };
-
-    class Foo {
-      constructor() {
-        this.foo = utils.foo();
-      }
+    class Foo extends React$1.Component {
       render() {
-        return /* @__PURE__ */ React.createElement(\\"div\\", {
+        return /* @__PURE__ */ React$1.createElement(\\"div\\", {
           className: \\"bar\\"
-        }, this.foo, /* @__PURE__ */ React.createElement(Bar, null));
+        }, /* @__PURE__ */ React$1.createElement(Bar, null));
       }
     }
 
-    console.log(React.createElement(Foo, null));
+    ReactDOM.render(React.createElement(Foo, null), document.getElementById('root'));
     "
   `)
 })
@@ -89,29 +85,20 @@ it('should transform and minify', async () => {
       minify: true
     },
     {
-      loader: 'tsx'
+      loader: 'tsx',
+      banner: "import React from 'react'"
     },
     {
       loader: 'jsx'
     },
     {
-      include: /\.m?[jt]s(?:x|on)?$/,
+      output: true,
       minify: true
     }
   ])
   expect(output[0].code).toMatchInlineSnapshot(`
-    "var e$1 = \`.qux{display:flex}
-    \`;
-
-    var e=!0;
-
-    class s{render(){return React.createElement(React.Fragment,null,React.createElement(\\"style\\",null,e$1),React.createElement(\\"div\\",{className:\\"qux\\"},e))}}
-
-    const utils={foo(){return \\"bar\\"}};
-
-    class t{constructor(){this.foo=utils.foo();}render(){return React.createElement(\\"div\\",{className:\\"bar\\"},this.foo,React.createElement(s,null))}}
-
-    console.log(React.createElement(t,null));
+    "import r from\\"react-dom\\";import e from\\"react\\";var n=\`.qux{display:flex}
+    \`,a=!0;class l extends e.Component{render(){return e.createElement(e.Fragment,null,e.createElement(\\"style\\",null,n),e.createElement(\\"div\\",{className:\\"qux\\"},a))}}class m extends e.Component{render(){return e.createElement(\\"div\\",{className:\\"bar\\"},e.createElement(l,null))}}r.render(React.createElement(m,null),document.getElementById(\\"root\\"));
     "
   `)
 })
@@ -122,7 +109,8 @@ it('should transform and add banner', async () => {
       loader: 'json'
     },
     {
-      loader: 'tsx'
+      loader: 'tsx',
+      banner: "import React from 'react'"
     },
     {
       loader: 'jsx'
@@ -133,7 +121,10 @@ it('should transform and add banner', async () => {
     }
   ])
   expect(output[0].code).toMatchInlineSnapshot(`
-    "var style = \`.qux {
+    "import ReactDOM from 'react-dom';
+    import React$1 from 'react';
+
+    var style = \`.qux {
       display: flex;
     }
     \`;
@@ -143,35 +134,26 @@ it('should transform and add banner', async () => {
     /**
      * @license MIT
      */
-    class Bar {
+    class Bar extends React$1.Component {
       render() {
-        return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(\\"style\\", null, style), /* @__PURE__ */ React.createElement(\\"div\\", {
+        return /* @__PURE__ */ React$1.createElement(React$1.Fragment, null, /* @__PURE__ */ React$1.createElement(\\"style\\", null, style), /* @__PURE__ */ React$1.createElement(\\"div\\", {
           className: \\"qux\\"
         }, qux));
       }
     }
 
-    const utils = {
-      foo() {
-        return 'bar'
-      }
-    };
-
     /**
      * @license MIT
      */
-    class Foo {
-      constructor() {
-        this.foo = utils.foo();
-      }
+    class Foo extends React.Component {
       render() {
         return /* @__PURE__ */ React.createElement(\\"div\\", {
           className: \\"bar\\"
-        }, this.foo, /* @__PURE__ */ React.createElement(Bar, null));
+        }, /* @__PURE__ */ React.createElement(Bar, null));
       }
     }
 
-    console.log(React.createElement(Foo, null));
+    ReactDOM.render(React.createElement(Foo, null), document.getElementById('root'));
     "
   `)
 })
@@ -181,8 +163,8 @@ it('should throw error if id can not be resolve', async () => {
   try {
     await build()
   } catch (err) {
-    expect((err as Error).message).toBe(
-      "Could not resolve './Foo' from __tests__/fixtures/index.js"
+    expect((err as Error).message).toMatchInlineSnapshot(
+      '"Could not resolve \'./Foo\' from __tests__/fixtures/index.js"'
     )
   }
 })

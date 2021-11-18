@@ -1,3 +1,4 @@
+import ReactDOM from 'react-dom'
 import Foo from './Foo'
 
-console.log(React.createElement(Foo, null))
+ReactDOM.render(React.createElement(Foo, null), document.getElementById('root'))

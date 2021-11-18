@@ -1,9 +1,9 @@
+import React from 'react'
 import style from './index.css'
 import { qux } from '../baz.json'
 
-export default class Bar {
+export default class Bar extends React.Component {
   render() {
-    // @ts-expect-error
     return (
       <>
         <style>{style}</style>
