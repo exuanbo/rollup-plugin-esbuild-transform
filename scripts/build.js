@@ -12,5 +12,6 @@ buildSync({
   format: 'esm',
   logLevel: 'info',
   outfile: '.cache/index.js',
-  platform: 'node'
+  platform: 'node',
+  target: 'node12'
 })

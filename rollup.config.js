@@ -23,10 +23,15 @@ export default [
       }
     ],
     plugins: [
-      esbuild({
-        loader: 'ts',
-        target: 'node10'
-      })
+      esbuild([
+        {
+          loader: 'ts'
+        },
+        {
+          output: true,
+          target: 'node10'
+        }
+      ])
     ]
   },
   {
