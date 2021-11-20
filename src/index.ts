@@ -148,12 +148,13 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
         format: transformOptions.loader === 'json' ? 'esm' : undefined,
         sourcefile: id,
         sourcemap: true,
+        treeShaking: true,
         ...transformOptions
       })
       return await handleTransformResult(this, transformedCode, map, warnings)
     },
 
-    async renderChunk(code, { fileName }, options) {
+    async renderChunk(code, { fileName }, rollupOutputOptions) {
       const transformOptions = getTransformOptions(outputTransformOptions, outputFilters, fileName)
       if (transformOptions === null) {
         return null
@@ -164,7 +165,7 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
         warnings
       } = await transform(code, {
         sourcefile: fileName,
-        sourcemap: options.sourcemap !== false,
+        sourcemap: rollupOutputOptions.sourcemap !== false,
         ...transformOptions
       })
       return await handleTransformResult(this, transformedCode, map, warnings)
