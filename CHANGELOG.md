@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.3.0](https://github.com/exuanbo/rollup-plugin-esbuild-transform/compare/v1.2.0...v1.3.0) (2021-11-20)
+
+### Bug Fixes
+
+- Absolute path import on Windows such as `C:\foo` could not be resolved.
+
+### Features
+
+- Parameter `options` is now optional and `Options.loader` is not required anymore.
+- Add `Options.output` for indicating whether this transformation should be performed after the chunk (bundle) has been rendered.
+
 ## [1.2.0](https://github.com/exuanbo/rollup-plugin-esbuild-transform/compare/v1.1.1...v1.2.0) (2021-11-06)
 
 ### Features
