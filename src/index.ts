@@ -15,7 +15,7 @@ type CommonOptions = Omit<Options, 'output'>
 const SCRIPT_LOADERS = ['js', 'jsx', 'ts', 'tsx'] as const
 
 const DEFAULT_EXCLUDE_REGEXP = /node_modules/
-const ABSOLUTE_PATH_REGEXP = /^(?:\/|(?:[a-zA-Z]:)?[\\|/])/
+const ABSOLUTE_PATH_REGEXP = /^(?:\/|(?:[a-zA-Z]:)?[\\/])/
 
 const splitOptionsByType = (
   options: Options[]
