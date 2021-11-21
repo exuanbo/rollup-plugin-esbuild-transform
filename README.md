@@ -7,6 +7,12 @@
 [![Codecov branch](https://img.shields.io/codecov/c/gh/exuanbo/rollup-plugin-esbuild-transform/main.svg?token=hyLDj7tMfT)](https://app.codecov.io/gh/exuanbo/rollup-plugin-esbuild-transform/)
 [![libera manifesto](https://img.shields.io/badge/libera-manifesto-lightgrey.svg)](https://liberamanifesto.com)
 
+## Why
+
+[`esbuild`](https://esbuild.github.io/api/#build-api) as a bundler has some problems such as [#475](https://github.com/evanw/esbuild/issues/475) which has still not been fixed since last year.
+
+[`rollup-plugin-esbuild`](https://github.com/egoist/rollup-plugin-esbuild) is great but there is no simpler way to use multiple `loader` with different options, and for some reason it does not provide all available options from [esbuild transform API](https://esbuild.github.io/api/#transform-api).
+
 ## Install
 
 ```sh
@@ -21,19 +27,22 @@ npm install -D esbuild rollup-plugin-esbuild-transform
 import esbuild from 'rollup-plugin-esbuild-transform'
 
 export default {
-  // Note: This is not an output plugin
   plugins: [
     esbuild([
       {
-        loader: 'json',
-        minifyWhitespace: true
+        loader: 'json'
       },
       {
         loader: 'tsx',
-        banner: "import * as React from 'react'"
+        banner: "import React from 'react'"
       },
       {
         loader: 'ts'
+      },
+      {
+        output: true,
+        minify: true,
+        target: 'es2015'
       }
     ])
   ]
@@ -50,6 +59,7 @@ import { FilterPattern } from '@rollup/pluginutils'
 import { Plugin } from 'rollup'
 
 interface Options extends TransformOptions {
+  output?: boolean
   include?: FilterPattern
   exclude?: FilterPattern
 }
@@ -61,60 +71,66 @@ declare function esbuildTransform(options?: Options | Options[]): Plugin
 export { Options, esbuildTransform as default }
 ```
 
-This plugin uses the same options from [esbuild Transform API](https://esbuild.github.io/api/#transform-api).
+This plugin uses the same options from [esbuild transform API](https://esbuild.github.io/api/#transform-api).
+
+`output` is for indicating whether this transformation should be performed after the chunk (bundle) has been rendered.
 
 `include` and `exclude` are [`picomatch`](https://github.com/micromatch/picomatch#globbing-features) patterns. They can be `string | RegExp | Array<string | RegExp>`. When supplied they will override the default values.
 
+If `output: true`, `include` and `exclude` will be applied to `RollupOptions.output.file`.
+
 ### `include`
 
-Default to <code>new RegExp(\`\\\\.\${loader}\$\`)</code> (supports `.cjs`, `.mjs`, `.cts`, `.mts`)
+Default to <code>new RegExp(\`\\\\.\${loader}\$\`)</code> (supports `.cjs`, `.mjs`, `.cts`, `.mts`), or `undefined` (match any filename) if `output: true`.
 
-If a file is matched by more than one pattern (as the example above), the options other than `loader` will be merged using `Object.assign()`.
+If a file is matched by more than one pattern (as the example below), the options other than `loader` will be merged into and possibly override the previous ones.
 
 ```js
 // for index.tsx
 [
   {
     loader: 'tsx',
-    banner: "import * as React from 'react'"
+    banner: "import React from 'react'"
   },
   {
     loader: 'ts',
     include: /\.tsx?$/,
-    minify: true
+    tsconfigRaw
   }
 ]
 
 // the final transform options will become
 {
   loader: 'tsx',
-  banner: "import * as React from 'react'",
-  minify: true
+  banner: "import React from 'react'",
+  tsconfigRaw
 }
 ```
 
 ### `exclude`
 
-Default to `/node_modules/`
+Default to `/node_modules/`, or `undefined` if `output: true`.
 
 It takes priority over `include`.
 
 ### Other default options
 
 ```js
+// output: false | undefined
 {
   format: options.loader === 'json' ? 'esm' : undefined,
   sourcefile: id, // the resolved file path
   sourcemap: true,
   ...options
 }
+
+// output: true
+{
+  sourcefile: chunk.fileName,
+  sourcemap: rollupOutputOptions.sourcemap !== false,
+  ...options
+}
 ```
-
-## Why
-
-[`esbuild`](https://esbuild.github.io/api/#build-api) as a bundler has some problems such as [#475](https://github.com/evanw/esbuild/issues/475) which has still not been fixed since last year.
-
-[`rollup-plugin-esbuild`](https://github.com/egoist/rollup-plugin-esbuild) is great but there is no simpler way to use multiple `loader` with different options, and for some reason it does not provide all available options from `esbuild.transform`.
 
 ## License
 
