@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs'
-import { dirname, join, resolve } from 'path'
+import { dirname, isAbsolute, join, resolve } from 'path'
 import { Loader, TransformOptions, Message, transform, formatMessages } from 'esbuild'
 import { FilterPattern, createFilter } from '@rollup/pluginutils'
 import type { Plugin, PluginContext } from 'rollup'
@@ -15,7 +15,6 @@ type CommonOptions = Omit<Options, 'output'>
 const SCRIPT_LOADERS = ['js', 'jsx', 'ts', 'tsx'] as const
 
 const DEFAULT_EXCLUDE_REGEXP = /node_modules/
-const ABSOLUTE_PATH_REGEXP = /^(?:\/|(?:[a-zA-Z]:)?[\\/])/
 
 const splitOptionsByType = (
   options: Options[]
@@ -117,10 +116,7 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
     name: 'esbuild-transform',
 
     async resolveId(source, importer) {
-      if (
-        importer === undefined ||
-        (!ABSOLUTE_PATH_REGEXP.test(source) && !source.startsWith('.'))
-      ) {
+      if (importer === undefined || !(source.startsWith('.') || isAbsolute(source))) {
         return null
       }
       const resolved = resolve(dirname(importer), source)
