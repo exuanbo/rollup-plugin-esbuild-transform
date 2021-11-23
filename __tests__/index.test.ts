@@ -21,7 +21,7 @@ const build = async (
   rollupOptions: RollupOptions = {}
 ): Promise<RollupOutput['output']> => {
   const build = await rollup({
-    input: path.join(__dirname, 'fixtures/index.js'),
+    input: path.join(__dirname, 'fixtures/main.js'),
     ...rollupOptions,
     external: ['react', 'react-dom'],
     plugins: [esbuild(options), css(), ...(rollupOptions.plugins ?? [])]
@@ -47,26 +47,28 @@ it('should transform', async () => {
     "import ReactDOM from 'react-dom';
     import React$1 from 'react';
 
-    var style = \`.qux {
+    var style = \`.bar {
       display: flex;
     }
     \`;
 
-    var qux = true;
-
     class Bar extends React$1.Component {
       render() {
         return /* @__PURE__ */ React$1.createElement(React$1.Fragment, null, /* @__PURE__ */ React$1.createElement(\\"style\\", null, style), /* @__PURE__ */ React$1.createElement(\\"div\\", {
-          className: \\"qux\\"
-        }, qux));
+          className: \\"bar\\"
+        }, \\"bar\\"));
       }
     }
+
+    var qux = true;
 
     class Foo extends React$1.Component {
       render() {
         return /* @__PURE__ */ React$1.createElement(\\"div\\", {
           className: \\"bar\\"
-        }, /* @__PURE__ */ React$1.createElement(Bar, null));
+        }, /* @__PURE__ */ React$1.createElement(Bar, null), /* @__PURE__ */ React$1.createElement(\\"div\\", {
+          className: \\"qux\\"
+        }, qux));
       }
     }
 
@@ -97,8 +99,8 @@ it('should transform and minify', async () => {
     }
   ])
   expect(output[0].code).toMatchInlineSnapshot(`
-    "import r from\\"react-dom\\";import e from\\"react\\";var n=\`.qux{display:flex}
-    \`,a=!0;class l extends e.Component{render(){return e.createElement(e.Fragment,null,e.createElement(\\"style\\",null,n),e.createElement(\\"div\\",{className:\\"qux\\"},a))}}class m extends e.Component{render(){return e.createElement(\\"div\\",{className:\\"bar\\"},e.createElement(l,null))}}r.render(React.createElement(m,null),document.getElementById(\\"root\\"));
+    "import r from\\"react-dom\\";import e from\\"react\\";var a=\`.bar{display:flex}
+    \`;class l extends e.Component{render(){return e.createElement(e.Fragment,null,e.createElement(\\"style\\",null,a),e.createElement(\\"div\\",{className:\\"bar\\"},\\"bar\\"))}}var n=!0;class m extends e.Component{render(){return e.createElement(\\"div\\",{className:\\"bar\\"},e.createElement(l,null),e.createElement(\\"div\\",{className:\\"qux\\"},n))}}r.render(React.createElement(m,null),document.getElementById(\\"root\\"));
     "
   `)
 })
@@ -124,12 +126,10 @@ it('should transform and add banner', async () => {
     "import ReactDOM from 'react-dom';
     import React$1 from 'react';
 
-    var style = \`.qux {
+    var style = \`.bar {
       display: flex;
     }
     \`;
-
-    var qux = true;
 
     /**
      * @license MIT
@@ -137,10 +137,12 @@ it('should transform and add banner', async () => {
     class Bar extends React$1.Component {
       render() {
         return /* @__PURE__ */ React$1.createElement(React$1.Fragment, null, /* @__PURE__ */ React$1.createElement(\\"style\\", null, style), /* @__PURE__ */ React$1.createElement(\\"div\\", {
-          className: \\"qux\\"
-        }, qux));
+          className: \\"bar\\"
+        }, \\"bar\\"));
       }
     }
+
+    var qux = true;
 
     /**
      * @license MIT
@@ -149,7 +151,9 @@ it('should transform and add banner', async () => {
       render() {
         return /* @__PURE__ */ React.createElement(\\"div\\", {
           className: \\"bar\\"
-        }, /* @__PURE__ */ React.createElement(Bar, null));
+        }, /* @__PURE__ */ React.createElement(Bar, null), /* @__PURE__ */ React.createElement(\\"div\\", {
+          className: \\"qux\\"
+        }, qux));
       }
     }
 
@@ -164,7 +168,7 @@ it('should throw error if id can not be resolve', async () => {
     await build()
   } catch (err) {
     expect((err as Error).message).toMatchInlineSnapshot(
-      '"Could not resolve \'./Foo\' from __tests__/fixtures/index.js"'
+      '"Could not resolve \'./Foo\' from __tests__/fixtures/main.js"'
     )
   }
 })
@@ -176,10 +180,10 @@ it('should warn', async () => {
       format: 'esm'
     },
     {
-      input: path.join(__dirname, 'fixtures/main.cjs'),
+      input: path.join(__dirname, 'fixtures/index.cjs'),
       onwarn(warning) {
         expect(warning.message).toMatch(
-          '/rollup-plugin-esbuild-transform/__tests__/fixtures/main.cjs'
+          '/rollup-plugin-esbuild-transform/__tests__/fixtures/index.cjs'
         )
       }
     }
