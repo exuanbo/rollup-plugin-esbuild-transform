@@ -64,8 +64,6 @@ interface Options extends TransformOptions {
   exclude?: FilterPattern
 }
 
-declare function esbuildTransform(options?: Options): Plugin
-declare function esbuildTransform(options?: Options[]): Plugin
 declare function esbuildTransform(options?: Options | Options[]): Plugin
 
 export { Options, esbuildTransform as default }

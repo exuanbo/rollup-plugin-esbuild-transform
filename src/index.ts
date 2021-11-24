@@ -91,10 +91,6 @@ const handleTransformResult = async (
   }
 }
 
-function esbuildTransform(options?: Options): Plugin
-function esbuildTransform(options?: Options[]): Plugin
-function esbuildTransform(options?: Options | Options[]): Plugin
-
 function esbuildTransform(options: Options | Options[] = {}): Plugin {
   const [inputOptions, outputOptions] = splitOptionsByType(
     Array.isArray(options) ? options : [options]
