@@ -20,8 +20,8 @@ const splitOptionsByType = (
   options: Options[]
 ): [inputOptions: CommonOptions[], outputOptions: CommonOptions[]] =>
   options.reduce<ReturnType<typeof splitOptionsByType>>(
-    ([inputOptions, outputOptions], { output, ...commonOptions }) => {
-      ;(output ?? false ? outputOptions : inputOptions).push(commonOptions)
+    ([inputOptions, outputOptions], { output = false, ...commonOptions }) => {
+      ;(output ? outputOptions : inputOptions).push(commonOptions)
       return [inputOptions, outputOptions]
     },
     [[], []]
@@ -100,15 +100,15 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
     Array.isArray(options) ? options : [options]
   )
 
-  const loaders = new Set(inputOptions.map(({ loader }) => loader ?? 'js'))
+  const loaders = new Set(inputOptions.map(({ loader = 'js' }) => loader))
   const scriptLoaders = SCRIPT_LOADERS.filter(loader => loaders.has(loader))
 
   const [inputTransformOptions, outputTransformOptions] = [inputOptions, outputOptions].map(
     _options => _options.map(({ include, exclude, ...transformOptions }) => transformOptions)
   )
 
-  const inputFilters = inputOptions.map(({ include, exclude, loader }) =>
-    createFilter(include ?? getExtensionRegExp(loader ?? 'js'), exclude ?? DEFAULT_EXCLUDE_REGEXP)
+  const inputFilters = inputOptions.map(({ include, exclude, loader = 'js' }) =>
+    createFilter(include ?? getExtensionRegExp(loader), exclude ?? DEFAULT_EXCLUDE_REGEXP)
   )
   const outputFilters = outputOptions.map(({ include, exclude }) => createFilter(include, exclude))
 
