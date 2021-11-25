@@ -75,7 +75,7 @@ This plugin uses the same options from [esbuild transform API](https://esbuild.g
 
 `include` and `exclude` are [`picomatch`](https://github.com/micromatch/picomatch#globbing-features) patterns. They can be `string | RegExp | Array<string | RegExp>`. When supplied they will override the default values.
 
-If `output: true`, `include` and `exclude` will be applied to `RollupOptions.output.file`.
+If `output: true`, then the options `include` and `exclude` will be applied to the chunk's filename from `RollupOptions.output.file`.
 
 ### `include`
 
