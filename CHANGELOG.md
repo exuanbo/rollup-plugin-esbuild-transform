@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.3.1](https://github.com/exuanbo/rollup-plugin-esbuild-transform/compare/v1.3.0...v1.3.1) (2021-11-26)
+
+### Chores
+
+- Add JSDoc to interface `Options`.
+
+### Code Refactoring
+
+- Replace regex with `path.isAbsolute()` when testing path.
+- Remove unnecessary overload function signatures.
+
 ## [1.3.0](https://github.com/exuanbo/rollup-plugin-esbuild-transform/compare/v1.2.0...v1.3.0) (2021-11-20)
 
 ### Bug Fixes
