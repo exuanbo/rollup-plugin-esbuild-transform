@@ -1,30 +1,43 @@
-import path from 'path'
-import { RollupOptions, RollupOutput, Plugin, rollup } from 'rollup'
+import { promises as fs } from 'fs'
+import { extname, join } from 'path'
+import { RollupOptions, RollupOutput, rollup } from 'rollup'
 import esbuild, { Options } from '../src'
 
-const css = (): Plugin => {
-  return {
-    name: 'css',
-    transform(code, id) {
-      if (path.extname(id) === '.css') {
-        return {
-          code: `export default \`${code}\``
-        }
-      }
-      return null
-    }
-  }
-}
+const fooPath = join(__dirname, 'fixtures/Foo.tsx')
+let fooContent: string
+
+beforeAll(async () => {
+  fooContent = await fs.readFile(fooPath, 'utf-8')
+  await fs.writeFile(fooPath, fooContent.replace('./bar', join(__dirname, 'fixtures/bar')))
+})
+
+afterAll(async () => {
+  await fs.writeFile(fooPath, fooContent)
+})
 
 const build = async (
   options?: Options | Options[],
   rollupOptions: RollupOptions = {}
 ): Promise<RollupOutput['output']> => {
   const build = await rollup({
-    input: path.join(__dirname, 'fixtures/main.js'),
+    input: join(__dirname, 'fixtures/main.js'),
     ...rollupOptions,
     external: ['react', 'react-dom'],
-    plugins: [esbuild(options), css(), ...(rollupOptions.plugins ?? [])]
+    plugins: [
+      esbuild(options),
+      {
+        name: 'css',
+        transform(code, id) {
+          if (extname(id) === '.css') {
+            return {
+              code: `export default \`${code}\``
+            }
+          }
+          return null
+        }
+      },
+      ...(rollupOptions.plugins ?? [])
+    ]
   })
   const { output } = await build.generate({ format: 'es' })
   return output
@@ -180,7 +193,7 @@ it('should warn', async () => {
       format: 'esm'
     },
     {
-      input: path.join(__dirname, 'fixtures/index.cjs'),
+      input: join(__dirname, 'fixtures/index.cjs'),
       onwarn(warning) {
         expect(warning.message).toMatch(
           '/rollup-plugin-esbuild-transform/__tests__/fixtures/index.cjs'
@@ -197,7 +210,7 @@ it('should not generate sourcemap if option is set', async () => {
       sourcemap: false
     },
     {
-      input: path.join(__dirname, 'fixtures/baz.json'),
+      input: join(__dirname, 'fixtures/baz.json'),
       output: {
         sourcemap: true
       }
@@ -213,7 +226,7 @@ it('should not transform exclude is set', async () => {
       exclude: /\.json$/
     },
     {
-      input: path.join(__dirname, 'fixtures/baz.json'),
+      input: join(__dirname, 'fixtures/baz.json'),
       plugins: [
         {
           name: 'json',
