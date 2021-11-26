@@ -1,12 +1,12 @@
 import Bar from './bar'
-import { qux } from './baz.json'
+import { name } from '../../package.json'
 
 export default class Foo extends React.Component {
   render() {
     return (
-      <div className="bar">
+      <div>
         <Bar />
-        <div className="qux">{qux}</div>
+        <div className="name">{name}</div>
       </div>
     )
   }

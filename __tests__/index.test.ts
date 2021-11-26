@@ -73,15 +73,13 @@ it('should transform', async () => {
       }
     }
 
-    var qux = true;
+    var name = \\"rollup-plugin-esbuild-transform\\";
 
     class Foo extends React$1.Component {
       render() {
-        return /* @__PURE__ */ React$1.createElement(\\"div\\", {
-          className: \\"bar\\"
-        }, /* @__PURE__ */ React$1.createElement(Bar, null), /* @__PURE__ */ React$1.createElement(\\"div\\", {
-          className: \\"qux\\"
-        }, qux));
+        return /* @__PURE__ */ React$1.createElement(\\"div\\", null, /* @__PURE__ */ React$1.createElement(Bar, null), /* @__PURE__ */ React$1.createElement(\\"div\\", {
+          className: \\"name\\"
+        }, name));
       }
     }
 
@@ -112,8 +110,8 @@ it('should transform and minify', async () => {
     }
   ])
   expect(output[0].code).toMatchInlineSnapshot(`
-    "import r from\\"react-dom\\";import e from\\"react\\";var a=\`.bar{display:flex}
-    \`;class l extends e.Component{render(){return e.createElement(e.Fragment,null,e.createElement(\\"style\\",null,a),e.createElement(\\"div\\",{className:\\"bar\\"},\\"bar\\"))}}var n=!0;class m extends e.Component{render(){return e.createElement(\\"div\\",{className:\\"bar\\"},e.createElement(l,null),e.createElement(\\"div\\",{className:\\"qux\\"},n))}}r.render(React.createElement(m,null),document.getElementById(\\"root\\"));
+    "import r from\\"react-dom\\";import e from\\"react\\";var l=\`.bar{display:flex}
+    \`;class n extends e.Component{render(){return e.createElement(e.Fragment,null,e.createElement(\\"style\\",null,l),e.createElement(\\"div\\",{className:\\"bar\\"},\\"bar\\"))}}var a=\\"rollup-plugin-esbuild-transform\\";class m extends e.Component{render(){return e.createElement(\\"div\\",null,e.createElement(n,null),e.createElement(\\"div\\",{className:\\"name\\"},a))}}r.render(React.createElement(m,null),document.getElementById(\\"root\\"));
     "
   `)
 })
@@ -155,18 +153,16 @@ it('should transform and add banner', async () => {
       }
     }
 
-    var qux = true;
+    var name = \\"rollup-plugin-esbuild-transform\\";
 
     /**
      * @license MIT
      */
     class Foo extends React.Component {
       render() {
-        return /* @__PURE__ */ React.createElement(\\"div\\", {
-          className: \\"bar\\"
-        }, /* @__PURE__ */ React.createElement(Bar, null), /* @__PURE__ */ React.createElement(\\"div\\", {
-          className: \\"qux\\"
-        }, qux));
+        return /* @__PURE__ */ React.createElement(\\"div\\", null, /* @__PURE__ */ React.createElement(Bar, null), /* @__PURE__ */ React.createElement(\\"div\\", {
+          className: \\"name\\"
+        }, name));
       }
     }
 
@@ -210,7 +206,7 @@ it('should not generate sourcemap if option is set', async () => {
       sourcemap: false
     },
     {
-      input: join(__dirname, 'fixtures/baz.json'),
+      input: join(__dirname, '../package.json'),
       output: {
         sourcemap: true
       }
@@ -226,7 +222,7 @@ it('should not transform exclude is set', async () => {
       exclude: /\.json$/
     },
     {
-      input: join(__dirname, 'fixtures/baz.json'),
+      input: join(__dirname, '../package.json'),
       plugins: [
         {
           name: 'json',
@@ -241,9 +237,9 @@ it('should not transform exclude is set', async () => {
     }
   )
   expect(output[0].code).toMatchInlineSnapshot(`
-    "var baz = 'This is a JSON file.';
+    "var _package = 'This is a JSON file.';
 
-    export { baz as default };
+    export { _package as default };
     "
   `)
 })
