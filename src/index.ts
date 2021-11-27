@@ -133,8 +133,9 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
     _options => _options.map(({ include, exclude, ...transformOptions }) => transformOptions)
   )
 
-  const inputFilters = inputOptions.map(({ include, exclude, loader = 'js' }) =>
-    createFilter(include ?? getExtensionRegExp(loader), exclude ?? DEFAULT_EXCLUDE_REGEXP)
+  const inputFilters = inputOptions.map(
+    ({ include, exclude = DEFAULT_EXCLUDE_REGEXP, loader = 'js' }) =>
+      createFilter(include ?? getExtensionRegExp(loader), exclude)
   )
   const outputFilters = outputOptions.map(({ include, exclude }) => createFilter(include, exclude))
 
