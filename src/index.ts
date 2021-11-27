@@ -60,14 +60,14 @@ const getExtensions = (loaders: Loader[]): Extension[] =>
   }, [])
 
 const resolveFilename = async (
-  resolved: string,
+  basename: string,
   extensions: Extension[]
 ): Promise<string | null> => {
   for (const extension of extensions) {
-    const resolvedFilename = `${resolved}.${extension}`
+    const possibleFilename = `${basename}.${extension}`
     try {
-      await fs.access(resolvedFilename)
-      return resolvedFilename
+      await fs.access(possibleFilename)
+      return possibleFilename
     } catch {}
   }
   return null
@@ -146,15 +146,13 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
       if (importer === undefined || !(source.startsWith('.') || isAbsolute(source))) {
         return null
       }
-      const resolved = resolve(dirname(importer), source)
+      const filename = resolve(dirname(importer), source)
       try {
-        const resolvedStats = await fs.stat(resolved)
-        if (resolvedStats.isDirectory()) {
-          return await resolveFilename(join(resolved, 'index'), scriptExtensions)
-        }
-        return resolved
+        return (await fs.stat(filename)).isDirectory()
+          ? await resolveFilename(join(filename, 'index'), scriptExtensions)
+          : filename
       } catch {
-        return await resolveFilename(resolved, extensions)
+        return await resolveFilename(filename, extensions)
       }
     },
 
@@ -176,7 +174,7 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
       return await handleTransformResult(this, transformedCode, map, warnings)
     },
 
-    async renderChunk(code, { fileName }, options) {
+    async renderChunk(code, { fileName }, _options) {
       const transformOptions = getTransformOptions(outputTransformOptions, outputFilters, fileName)
       if (transformOptions === null) {
         return null
@@ -187,7 +185,7 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
         warnings
       } = await transform(code, {
         sourcefile: fileName,
-        sourcemap: options.sourcemap !== false,
+        sourcemap: _options.sourcemap !== false,
         ...transformOptions
       })
       return await handleTransformResult(this, transformedCode, map, warnings)
