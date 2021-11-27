@@ -4,6 +4,10 @@ import { Loader, TransformOptions, Message, transform, formatMessages } from 'es
 import { FilterPattern, createFilter } from '@rollup/pluginutils'
 import type { Plugin, PluginContext } from 'rollup'
 
+const SCRIPT_LOADERS: readonly Loader[] = ['js', 'jsx', 'ts', 'tsx']
+
+const DEFAULT_EXCLUDE_REGEXP = /node_modules/
+
 export interface Options extends TransformOptions {
   /**
    * Whether this transformation should be performed after the chunk (bundle) has been rendered.
@@ -27,10 +31,6 @@ export interface Options extends TransformOptions {
 
 type CommonOptions = Omit<Options, 'output'>
 
-const SCRIPT_LOADERS = ['js', 'jsx', 'ts', 'tsx'] as const
-
-const DEFAULT_EXCLUDE_REGEXP = /node_modules/
-
 const splitOptionsByType = (
   options: Options[]
 ): [inputOptions: CommonOptions[], outputOptions: CommonOptions[]] =>
@@ -47,12 +47,24 @@ const getExtensionRegExp = (loader: Loader): RegExp =>
     `\\.${loader === 'js' || loader === 'ts' ? `(?:${loader}|c${loader}|m${loader})` : loader}$`
   )
 
+type Extension = Loader | `${'c' | 'm'}${'js' | 'ts'}`
+
+const getExtensions = (loaders: Loader[]): Extension[] =>
+  loaders.reduce<Extension[]>((extensions, loader) => {
+    extensions.push(
+      ...(loader === 'js' || loader === 'ts'
+        ? ([loader, `c${loader}`, `m${loader}`] as const)
+        : [loader])
+    )
+    return extensions
+  }, [])
+
 const resolveFilename = async (
   resolved: string,
-  loaders: Iterable<Loader>
+  extensions: Extension[]
 ): Promise<string | null> => {
-  for (const loader of loaders) {
-    const resolvedFilename = `${resolved}.${loader}`
+  for (const extension of extensions) {
+    const resolvedFilename = `${resolved}.${extension}`
     try {
       await fs.access(resolvedFilename)
       return resolvedFilename
@@ -111,8 +123,11 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
     Array.isArray(options) ? options : [options]
   )
 
-  const loaders = new Set(inputOptions.map(({ loader = 'js' }) => loader))
-  const scriptLoaders = SCRIPT_LOADERS.filter(loader => loaders.has(loader))
+  const loaders = [...new Set(inputOptions.map(({ loader = 'js' }) => loader))]
+  const extensions = getExtensions(loaders)
+
+  const scriptLoaders = loaders.filter(loader => SCRIPT_LOADERS.includes(loader))
+  const scriptExtensions = getExtensions(scriptLoaders)
 
   const [inputTransformOptions, outputTransformOptions] = [inputOptions, outputOptions].map(
     _options => _options.map(({ include, exclude, ...transformOptions }) => transformOptions)
@@ -134,11 +149,11 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
       try {
         const resolvedStats = await fs.stat(resolved)
         if (resolvedStats.isDirectory()) {
-          return await resolveFilename(join(resolved, 'index'), scriptLoaders)
+          return await resolveFilename(join(resolved, 'index'), scriptExtensions)
         }
         return resolved
       } catch {
-        return await resolveFilename(resolved, loaders)
+        return await resolveFilename(resolved, extensions)
       }
     },
 
