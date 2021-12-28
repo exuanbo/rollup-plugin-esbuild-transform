@@ -16,13 +16,13 @@ export interface Options extends TransformOptions {
    */
   output?: boolean
   /**
-   * A valid [`picomatch`](https://github.com/micromatch/picomatch#globbing-features) pattern, or array of patterns.
+   * A valid [`picomatch`](https://github.com/micromatch/picomatch#globbing-features) glob pattern, or array of patterns.
    *
    * @see <https://github.com/exuanbo/rollup-plugin-esbuild-transform#include>
    */
   include?: FilterPattern
   /**
-   * A valid [`picomatch`](https://github.com/micromatch/picomatch#globbing-features) pattern, or array of patterns.
+   * A valid [`picomatch`](https://github.com/micromatch/picomatch#globbing-features) glob pattern, or array of patterns.
    *
    * @see <https://github.com/exuanbo/rollup-plugin-esbuild-transform#exclude>
    */
@@ -42,11 +42,6 @@ const splitOptionsByType = (
     [[], []]
   )
 
-const getExtensionRegExp = (loader: Loader): RegExp =>
-  new RegExp(
-    `\\.${loader === 'js' || loader === 'ts' ? `(?:${loader}|c${loader}|m${loader})` : loader}$`
-  )
-
 type Extension = Loader | `${'c' | 'm'}${'js' | 'ts'}`
 
 const getExtensions = (loaders: Loader[]): Extension[] =>
@@ -58,6 +53,11 @@ const getExtensions = (loaders: Loader[]): Extension[] =>
     )
     return extensions
   }, [])
+
+const getExtensionRegExp = (loader: Loader): RegExp =>
+  new RegExp(
+    `\\.${loader === 'js' || loader === 'ts' ? `(?:${loader}|c${loader}|m${loader})` : loader}$`
+  )
 
 const resolveFilename = async (
   basename: string,
