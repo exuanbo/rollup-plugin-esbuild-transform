@@ -75,7 +75,7 @@ const resolveFilename = async (
 
 const getTransformOptions = (
   allTransformOptions: TransformOptions[],
-  filters: Array<(id: unknown) => boolean>,
+  filters: Array<ReturnType<typeof createFilter>>,
   id: string
 ): TransformOptions | null =>
   allTransformOptions.reduce<ReturnType<typeof getTransformOptions>>(
