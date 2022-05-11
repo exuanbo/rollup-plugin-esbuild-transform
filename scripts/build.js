@@ -12,5 +12,5 @@ buildSync({
   logLevel: 'info',
   outfile: '.cache/index.js',
   platform: 'node',
-  target: 'node14'
+  target: 'node12'
 })
