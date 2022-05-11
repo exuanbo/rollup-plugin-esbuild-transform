@@ -1,8 +1,8 @@
 import { promises as fs } from 'fs'
 import { dirname, isAbsolute, join, resolve } from 'path'
-import { Loader, TransformOptions, Message, transform, formatMessages } from 'esbuild'
+import { Loader, TransformOptions, TransformResult, transform, formatMessages } from 'esbuild'
 import { FilterPattern, createFilter } from '@rollup/pluginutils'
-import type { Plugin, PluginContext } from 'rollup'
+import type { SourceMapInput, Plugin, PluginContext } from 'rollup'
 
 const SCRIPT_LOADERS: readonly Loader[] = ['js', 'jsx', 'ts', 'tsx']
 
@@ -94,17 +94,15 @@ const getTransformOptions = (
     null
   )
 
-interface TransformResult {
+interface HookReturn {
   code: string
-  map: string | undefined
+  map?: SourceMapInput
 }
 
 const handleTransformResult = async (
   pluginContext: PluginContext,
-  transformedCode: string,
-  map: string,
-  warnings: Message[]
-): Promise<TransformResult> => {
+  { code, map, warnings }: TransformResult
+): Promise<HookReturn> => {
   if (warnings.length > 0) {
     const messages = await formatMessages(warnings, {
       kind: 'warning',
@@ -115,7 +113,7 @@ const handleTransformResult = async (
     })
   }
   return {
-    code: transformedCode,
+    code,
     map: map === '' ? undefined : map
   }
 }
@@ -163,17 +161,13 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
       if (transformOptions === null) {
         return null
       }
-      const {
-        code: transformedCode,
-        map,
-        warnings
-      } = await transform(code, {
+      const transformResult = await transform(code, {
         format: transformOptions.loader === 'json' ? 'esm' : undefined,
         sourcefile: id,
         sourcemap: true,
         ...transformOptions
       })
-      return await handleTransformResult(this, transformedCode, map, warnings)
+      return await handleTransformResult(this, transformResult)
     },
 
     async renderChunk(code, { fileName }, _options) {
@@ -181,16 +175,12 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
       if (transformOptions === null) {
         return null
       }
-      const {
-        code: transformedCode,
-        map,
-        warnings
-      } = await transform(code, {
+      const transformResult = await transform(code, {
         sourcefile: fileName,
         sourcemap: _options.sourcemap !== false,
         ...transformOptions
       })
-      return await handleTransformResult(this, transformedCode, map, warnings)
+      return await handleTransformResult(this, transformResult)
     }
   }
 }
