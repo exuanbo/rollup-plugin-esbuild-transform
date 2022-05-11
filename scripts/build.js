@@ -2,16 +2,15 @@
 'use strict'
 
 const { buildSync } = require('esbuild')
-const pkg = require('../package.json')
+const { dependencies, peerDependencies } = require('../package.json')
 
 buildSync({
   bundle: true,
-  color: true,
   entryPoints: ['src/index.ts'],
-  external: [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies)],
+  external: [...Object.keys(dependencies), ...Object.keys(peerDependencies)],
   format: 'esm',
   logLevel: 'info',
   outfile: '.cache/index.js',
   platform: 'node',
-  target: 'node12'
+  target: 'node14'
 })
