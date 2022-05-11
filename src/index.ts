@@ -33,26 +33,28 @@ type CommonOptions = Omit<Options, 'output'>
 
 const splitOptionsByType = (
   options: Options[]
-): [inputOptions: CommonOptions[], outputOptions: CommonOptions[]] =>
-  options.reduce<ReturnType<typeof splitOptionsByType>>(
-    ([inputOptions, outputOptions], { output = false, ...commonOptions }) => {
-      ;(output ? outputOptions : inputOptions).push(commonOptions)
-      return [inputOptions, outputOptions]
-    },
-    [[], []]
-  )
+): [inputOptions: CommonOptions[], outputOptions: CommonOptions[]] => {
+  const inputOptions: CommonOptions[] = []
+  const outputOptions: CommonOptions[] = []
+  for (const { output = false, ...commonOptions } of options) {
+    ;(output ? outputOptions : inputOptions).push(commonOptions)
+  }
+  return [inputOptions, outputOptions]
+}
 
 type Extension = Loader | `${'c' | 'm'}${'js' | 'ts'}`
 
-const getExtensions = (loaders: Loader[]): Extension[] =>
-  loaders.reduce<Extension[]>((extensions, loader) => {
-    extensions.push(
-      ...(loader === 'js' || loader === 'ts'
-        ? ([loader, `c${loader}`, `m${loader}`] as const)
-        : [loader])
-    )
-    return extensions
-  }, [])
+const getExtensions = (loaders: Loader[]): Extension[] => {
+  const extensions: Extension[] = []
+  for (const loader of loaders) {
+    if (loader === 'js' || loader === 'ts') {
+      extensions.push(loader, `c${loader}`, `m${loader}`)
+    } else {
+      extensions.push(loader)
+    }
+  }
+  return extensions
+}
 
 const getExtensionRegExp = (loader: Loader): RegExp =>
   new RegExp(
