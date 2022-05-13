@@ -15,6 +15,7 @@ export default [
       {
         file: pkg.main,
         format: 'cjs',
+        generatedCode: 'es2015',
         exports: 'auto'
       },
       {
