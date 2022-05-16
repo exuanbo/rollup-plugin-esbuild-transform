@@ -53,9 +53,9 @@ const splitOptionsByType = (
 ): [inputOptions: CommonOptions[], outputOptions: CommonOptions[]] => {
   const inputOptions: CommonOptions[] = []
   const outputOptions: CommonOptions[] = []
-  for (const { output = false, ...commonOptions } of options) {
+  options.forEach(({ output = false, ...commonOptions }) => {
     ;(output ? outputOptions : inputOptions).push(commonOptions)
-  }
+  })
   return [inputOptions, outputOptions]
 }
 
@@ -63,13 +63,13 @@ type Extension = Loader | `${'c' | 'm'}${'js' | 'ts'}`
 
 const getExtensions = (loaders: Loader[]): Extension[] => {
   const extensions: Extension[] = []
-  for (const loader of loaders) {
+  loaders.forEach(loader => {
     if (loader === 'js' || loader === 'ts') {
       extensions.push(loader, `c${loader}`, `m${loader}`)
     } else {
       extensions.push(loader)
     }
-  }
+  })
   return extensions
 }
 
