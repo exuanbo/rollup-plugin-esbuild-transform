@@ -76,6 +76,10 @@ it('should transform', async () => {
     var name = \\"rollup-plugin-esbuild-transform\\";
 
     class Foo extends React$1.Component {
+      constructor() {
+        super(...arguments);
+        this.displayName = \\"Foo\\";
+      }
       render() {
         return /* @__PURE__ */ React$1.createElement(\\"div\\", null, /* @__PURE__ */ React$1.createElement(Bar, null), /* @__PURE__ */ React$1.createElement(\\"div\\", {
           className: \\"name\\"
@@ -110,8 +114,55 @@ it('should transform and minify', async () => {
     }
   ])
   expect(output[0].code).toMatchInlineSnapshot(`
-    "import r from\\"react-dom\\";import e from\\"react\\";var l=\`.bar{display:flex}
-    \`;class n extends e.Component{render(){return e.createElement(e.Fragment,null,e.createElement(\\"style\\",null,l),e.createElement(\\"div\\",{className:\\"bar\\"},\\"bar\\"))}}var a=\\"rollup-plugin-esbuild-transform\\";class m extends e.Component{render(){return e.createElement(\\"div\\",null,e.createElement(n,null),e.createElement(\\"div\\",{className:\\"name\\"},a))}}r.render(React.createElement(m,null),document.getElementById(\\"root\\"));
+    "import r from\\"react-dom\\";import e from\\"react\\";var n=\`.bar{display:flex}
+    \`;class l extends e.Component{render(){return e.createElement(e.Fragment,null,e.createElement(\\"style\\",null,n),e.createElement(\\"div\\",{className:\\"bar\\"},\\"bar\\"))}}var a=\\"rollup-plugin-esbuild-transform\\";class m extends e.Component{constructor(){super(...arguments),this.displayName=\\"Foo\\"}render(){return e.createElement(\\"div\\",null,e.createElement(l,null),e.createElement(\\"div\\",{className:\\"name\\"},a))}}r.render(React.createElement(m,null),document.getElementById(\\"root\\"));
+    "
+  `)
+})
+
+it('should transform using tsconfig', async () => {
+  const output = await build([
+    {
+      loader: 'json'
+    },
+    {
+      loader: 'tsx',
+      banner: "import React from 'react'",
+      tsconfig: join(__dirname, 'fixtures/tsconfig.json')
+    },
+    {
+      loader: 'jsx'
+    }
+  ])
+  expect(output[0].code).toMatchInlineSnapshot(`
+    "import ReactDOM from 'react-dom';
+    import React$1 from 'react';
+
+    var style = \`.bar {
+      display: flex;
+    }
+    \`;
+
+    class Bar extends React$1.Component {
+      render() {
+        return /* @__PURE__ */ React$1.createElement(React$1.Fragment, null, /* @__PURE__ */ React$1.createElement(\\"style\\", null, style), /* @__PURE__ */ React$1.createElement(\\"div\\", {
+          className: \\"bar\\"
+        }, \\"bar\\"));
+      }
+    }
+
+    var name = \\"rollup-plugin-esbuild-transform\\";
+
+    class Foo extends React$1.Component {
+      displayName = \\"Foo\\";
+      render() {
+        return /* @__PURE__ */ React$1.createElement(\\"div\\", null, /* @__PURE__ */ React$1.createElement(Bar, null), /* @__PURE__ */ React$1.createElement(\\"div\\", {
+          className: \\"name\\"
+        }, name));
+      }
+    }
+
+    ReactDOM.render(React.createElement(Foo, null), document.getElementById('root'));
     "
   `)
 })
@@ -159,6 +210,10 @@ it('should transform and add banner', async () => {
      * @license MIT
      */
     class Foo extends React.Component {
+      constructor() {
+        super(...arguments);
+        this.displayName = \\"Foo\\";
+      }
       render() {
         return /* @__PURE__ */ React.createElement(\\"div\\", null, /* @__PURE__ */ React.createElement(Bar, null), /* @__PURE__ */ React.createElement(\\"div\\", {
           className: \\"name\\"

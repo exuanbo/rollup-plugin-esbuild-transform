@@ -1,12 +1,29 @@
 import { promises as fs } from 'fs'
 import { dirname, isAbsolute, join, resolve } from 'path'
-import { Loader, TransformOptions, TransformResult, transform, formatMessages } from 'esbuild'
+import {
+  Loader,
+  TransformOptions as EsbuildTransformOptions,
+  TransformResult,
+  transform,
+  formatMessages
+} from 'esbuild'
 import { FilterPattern, createFilter } from '@rollup/pluginutils'
 import type { SourceMapInput, Plugin, PluginContext } from 'rollup'
 
 const SCRIPT_LOADERS: readonly Loader[] = ['js', 'jsx', 'ts', 'tsx']
 
 const DEFAULT_EXCLUDE_REGEXP = /node_modules/
+
+export interface TransformOptions extends EsbuildTransformOptions {
+  /**
+   * Path to `tsconfig.json` file relative to `process.cwd()`.
+   *
+   * It will not be used if `tsconfigRaw` is provided.
+   *
+   * @see <https://esbuild.github.io/content-types/#tsconfig-json>
+   */
+  tsconfig?: string
+}
 
 export interface Options extends TransformOptions {
   /**
@@ -75,24 +92,36 @@ const resolveFilename = async (
   return null
 }
 
-const getTransformOptions = (
-  allTransformOptions: TransformOptions[],
-  filters: Array<ReturnType<typeof createFilter>>,
+type Filter = ReturnType<typeof createFilter>
+
+const getTransformOptions = async (
+  transformOptions: TransformOptions[],
+  filters: Filter[],
   id: string
-): TransformOptions | null =>
-  allTransformOptions.reduce<ReturnType<typeof getTransformOptions>>(
-    (result, transformOptions, index) => {
-      if (!filters[index](id)) {
-        return result
-      }
-      if (result === null) {
-        return transformOptions
-      }
-      const { loader, ...loaderOmitted } = transformOptions
-      return { ...result, ...loaderOmitted }
-    },
-    null
-  )
+): Promise<EsbuildTransformOptions | null> => {
+  let resultTransformOptions: EsbuildTransformOptions | null = null
+  for (let index = 0; index < transformOptions.length; index++) {
+    if (!filters[index](id)) {
+      continue
+    }
+    const { loader, tsconfig, ...restTransformOptions } = transformOptions[index]
+    const { tsconfigRaw } = restTransformOptions
+    if (
+      (loader === 'ts' || loader === 'tsx') &&
+      tsconfigRaw === undefined &&
+      tsconfig !== undefined
+    ) {
+      const tsconfigPath = resolve(process.cwd(), tsconfig)
+      restTransformOptions.tsconfigRaw = await fs.readFile(tsconfigPath, 'utf8')
+    }
+    if (resultTransformOptions === null) {
+      resultTransformOptions = { loader, ...restTransformOptions }
+    } else {
+      Object.assign(resultTransformOptions, restTransformOptions)
+    }
+  }
+  return resultTransformOptions
+}
 
 interface HookReturn {
   code: string
@@ -157,7 +186,7 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
     },
 
     async transform(code, id) {
-      const transformOptions = getTransformOptions(inputTransformOptions, inputFilters, id)
+      const transformOptions = await getTransformOptions(inputTransformOptions, inputFilters, id)
       if (transformOptions === null) {
         return null
       }
@@ -170,13 +199,13 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
       return await handleTransformResult(this, transformResult)
     },
 
-    async renderChunk(code, { fileName }, _options) {
-      const transformOptions = getTransformOptions(outputTransformOptions, outputFilters, fileName)
+    async renderChunk(code, { fileName: id }, _options) {
+      const transformOptions = await getTransformOptions(outputTransformOptions, outputFilters, id)
       if (transformOptions === null) {
         return null
       }
       const transformResult = await transform(code, {
-        sourcefile: fileName,
+        sourcefile: id,
         sourcemap: _options.sourcemap !== false,
         ...transformOptions
       })
