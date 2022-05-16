@@ -20,7 +20,8 @@ export interface TransformOptions extends EsbuildTransformOptions {
    *
    * It will not be used if `tsconfigRaw` is provided.
    *
-   * @see <https://esbuild.github.io/content-types/#tsconfig-json>
+   * @default undefined
+   * @see https://esbuild.github.io/content-types/#tsconfig-json
    */
   tsconfig?: string
 }
@@ -30,18 +31,24 @@ export interface Options extends TransformOptions {
    * Whether this transformation should be performed after the chunk (bundle) has been rendered.
    *
    * If `true`, then the options `include` and `exclude` will be applied to the chunk's filename from `RollupOptions.output.file`.
+   *
+   * @default false
    */
   output?: boolean
   /**
    * A valid [`picomatch`](https://github.com/micromatch/picomatch#globbing-features) glob pattern, or array of patterns.
    *
-   * @see <https://github.com/exuanbo/rollup-plugin-esbuild-transform#include>
+   * @default RegExp(`\\.${loader}$`)
+   * @default undefined // if `output` is `true`
+   * @see https://github.com/exuanbo/rollup-plugin-esbuild-transform#include
    */
   include?: FilterPattern
   /**
    * A valid [`picomatch`](https://github.com/micromatch/picomatch#globbing-features) glob pattern, or array of patterns.
    *
-   * @see <https://github.com/exuanbo/rollup-plugin-esbuild-transform#exclude>
+   * @default /node_modules/
+   * @default undefined // if `output` is `true`
+   * @see https://github.com/exuanbo/rollup-plugin-esbuild-transform#exclude
    */
   exclude?: FilterPattern
 }
