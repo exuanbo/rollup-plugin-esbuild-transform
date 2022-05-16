@@ -24,9 +24,11 @@ npm install -D esbuild rollup-plugin-esbuild-transform
 ```js
 // rollup.config.js
 
+import { join } from 'path'
 import esbuild from 'rollup-plugin-esbuild-transform'
 
 export default {
+  // ...
   plugins: [
     esbuild([
       {
@@ -37,7 +39,9 @@ export default {
         banner: "import React from 'react'"
       },
       {
-        loader: 'ts'
+        loader: 'ts',
+        include: /\.tsx?$/,
+        tsconfig: join(__dirname, 'tsconfig.json')
       },
       {
         output: true,
@@ -54,22 +58,27 @@ export default {
 ```ts
 // index.d.ts
 
-import { TransformOptions } from 'esbuild'
+import { TransformOptions as EsbuildTransformOptions } from 'esbuild'
 import { FilterPattern } from '@rollup/pluginutils'
 import { Plugin } from 'rollup'
 
-interface Options extends TransformOptions {
+export interface TransformOptions extends EsbuildTransformOptions {
+  tsconfig?: string
+}
+
+export interface Options extends TransformOptions {
   output?: boolean
   include?: FilterPattern
   exclude?: FilterPattern
 }
 
 declare function esbuildTransform(options?: Options | Options[]): Plugin
-
-export { Options, esbuildTransform as default }
+export default esbuildTransform
 ```
 
 This plugin uses the same options from [esbuild transform API](https://esbuild.github.io/api/#transform-api).
+
+`tsconfig` is the path to `tsconfig.json` file relative to `process.cwd()`. It will not be used if `tsconfigRaw` is provided.
 
 `output` is for indicating whether this transformation should be performed after the chunk (bundle) has been rendered.
 
@@ -81,10 +90,10 @@ If `output: true`, then the options `include` and `exclude` will be applied to t
 
 Default to <code>new RegExp(\`\\\\.\${loader}\$\`)</code> (supports `.cjs`, `.mjs`, `.cts`, `.mts`), or `undefined` (match any filename) if `output: true`.
 
-If a file is matched by more than one pattern (as the example below), the options other than `loader` will be merged into and possibly override the previous ones.
+If a file is matched by more than one pattern (as the example below), the options other than `loader` will be ***shallowly*** merged into and possibly override the previous ones.
 
 ```js
-// for index.tsx
+// options
 [
   {
     loader: 'tsx',
@@ -93,15 +102,15 @@ If a file is matched by more than one pattern (as the example below), the option
   {
     loader: 'ts',
     include: /\.tsx?$/,
-    tsconfigRaw
+    tsconfig: join(__dirname, 'tsconfig.json')
   }
 ]
 
-// the final transform options will become
+// the final transform options for `index.tsx` will become
 {
   loader: 'tsx',
   banner: "import React from 'react'",
-  tsconfigRaw
+  tsconfig: join(__dirname, 'tsconfig.json')
 }
 ```
 

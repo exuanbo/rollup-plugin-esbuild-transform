@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/exuanbo/rollup-plugin-esbuild-transform/compare/v1.3.2...v1.4.0) (2022-05-16)
+
+### Features
+
+- Add `Options.tsconfig` to specify `tsconfig.json` file. It will not be used if `tsconfigRaw` is provided.
+- Export extended `TransformOptions`.
+
 ## [1.3.2](https://github.com/exuanbo/rollup-plugin-esbuild-transform/compare/v1.3.1...v1.3.2) (2021-11-27)
 
 ### Bug Fixes
