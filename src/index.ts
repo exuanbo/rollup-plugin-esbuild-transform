@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs'
 import { dirname, isAbsolute, join, resolve } from 'path'
 import {
-  Loader,
+  Loader as EsbuildLoader,
   TransformOptions as EsbuildTransformOptions,
   TransformResult,
   transform,
@@ -9,6 +9,8 @@ import {
 } from 'esbuild'
 import { FilterPattern, createFilter } from '@rollup/pluginutils'
 import type { SourceMapInput, Plugin, PluginContext } from 'rollup'
+
+type Loader = Exclude<EsbuildLoader, 'default'>
 
 const SCRIPT_LOADERS: readonly Loader[] = ['js', 'jsx', 'ts', 'tsx']
 
@@ -75,29 +77,55 @@ type LoaderExtension = Extract<Loader, 'js' | 'jsx' | 'ts' | 'tsx' | 'css' | 'js
 
 type Extension = LoaderExtension | `${'c' | 'm'}${'js' | 'ts'}`
 
+const getExtension = (loader: Loader): Extension | Extension[] | undefined => {
+  switch (loader) {
+    case 'js':
+    case 'ts':
+      return [loader, `c${loader}`, `m${loader}`]
+    case 'jsx':
+    case 'tsx':
+    case 'css':
+    case 'json':
+      return loader
+  }
+}
+
 const getExtensions = (loaders: Loader[]): Extension[] => {
   const extensions: Extension[] = []
   loaders.forEach(loader => {
-    switch (loader) {
-      case 'js':
-      case 'ts':
-        extensions.push(loader, `c${loader}`, `m${loader}`)
-        break
-      case 'jsx':
-      case 'tsx':
-      case 'css':
-      case 'json':
-        extensions.push(loader)
-        break
+    const extension = getExtension(loader)
+    if (extension !== undefined) {
+      extensions.push(...(Array.isArray(extension) ? extension : [extension]))
     }
   })
   return extensions
 }
 
-const getExtensionRegExp = (loader: Loader): RegExp =>
-  new RegExp(
-    `\\.${loader === 'js' || loader === 'ts' ? `(?:${loader}|c${loader}|m${loader})` : loader}$`
-  )
+const getTransformOptions = (options: CommonOptions[]): TransformOptions[] =>
+  options.map(({ include, exclude, ...transformOptions }) => transformOptions)
+
+const getExtensionRegExp = (extension: Extension | Extension[] | undefined): RegExp => {
+  if (extension === undefined) {
+    return /^$/
+  } else {
+    if (Array.isArray(extension)) {
+      return new RegExp(`\\.(?:${extension.join('|')})$`)
+    } else {
+      return new RegExp(`\\.${extension}$`)
+    }
+  }
+}
+
+type Filter = ReturnType<typeof createFilter>
+
+const getInputFilters = (options: CommonOptions[]): Filter[] =>
+  options.map(({ include, exclude = DEFAULT_EXCLUDE_REGEXP, loader = 'js' }) => {
+    const extension = getExtension(loader === 'default' ? 'js' : loader)
+    return createFilter(include ?? getExtensionRegExp(extension), exclude)
+  })
+
+const getOutputFilters = (options: CommonOptions[]): Filter[] =>
+  options.map(({ include, exclude }) => createFilter(include, exclude))
 
 const resolveFilename = async (
   basename: string,
@@ -112,8 +140,6 @@ const resolveFilename = async (
   }
   return null
 }
-
-type Filter = ReturnType<typeof createFilter>
 
 const getEsbuildTransformOptions = async (
   transformOptions: TransformOptions[],
@@ -179,15 +205,11 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
   const scriptLoaders = loaders.filter(loader => SCRIPT_LOADERS.includes(loader))
   const scriptExtensions = getExtensions(scriptLoaders)
 
-  const [inputTransformOptions, outputTransformOptions] = [inputOptions, outputOptions].map(
-    _options => _options.map(({ include, exclude, ...transformOptions }) => transformOptions)
-  )
+  const inputTransformOptions = getTransformOptions(inputOptions)
+  const outputTransformOptions = getTransformOptions(outputOptions)
 
-  const inputFilters = inputOptions.map(
-    ({ include, exclude = DEFAULT_EXCLUDE_REGEXP, loader = 'js' }) =>
-      createFilter(include ?? getExtensionRegExp(loader), exclude)
-  )
-  const outputFilters = outputOptions.map(({ include, exclude }) => createFilter(include, exclude))
+  const inputFilters = getInputFilters(inputOptions)
+  const outputFilters = getOutputFilters(outputOptions)
 
   return {
     name: 'esbuild-transform',
