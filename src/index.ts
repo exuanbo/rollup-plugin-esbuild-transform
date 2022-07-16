@@ -66,15 +66,29 @@ const splitOptionsByType = (
   return [inputOptions, outputOptions]
 }
 
-type Extension = Loader | `${'c' | 'm'}${'js' | 'ts'}`
+const getLoaders = (options: CommonOptions[]): Loader[] => {
+  const loaders = options.map(({ loader = 'js' }) => (loader === 'default' ? 'js' : loader))
+  return [...new Set(loaders)]
+}
+
+type LoaderExtension = Extract<Loader, 'js' | 'jsx' | 'ts' | 'tsx' | 'css' | 'json'>
+
+type Extension = LoaderExtension | `${'c' | 'm'}${'js' | 'ts'}`
 
 const getExtensions = (loaders: Loader[]): Extension[] => {
   const extensions: Extension[] = []
   loaders.forEach(loader => {
-    if (loader === 'js' || loader === 'ts') {
-      extensions.push(loader, `c${loader}`, `m${loader}`)
-    } else {
-      extensions.push(loader)
+    switch (loader) {
+      case 'js':
+      case 'ts':
+        extensions.push(loader, `c${loader}`, `m${loader}`)
+        break
+      case 'jsx':
+      case 'tsx':
+      case 'css':
+      case 'json':
+        extensions.push(loader)
+        break
     }
   })
   return extensions
@@ -159,7 +173,7 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
     Array.isArray(options) ? options : [options]
   )
 
-  const loaders = [...new Set(inputOptions.map(({ loader = 'js' }) => loader))]
+  const loaders = getLoaders(inputOptions)
   const extensions = getExtensions(loaders)
 
   const scriptLoaders = loaders.filter(loader => SCRIPT_LOADERS.includes(loader))
