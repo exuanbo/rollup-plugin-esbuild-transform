@@ -115,12 +115,12 @@ const resolveFilename = async (
 
 type Filter = ReturnType<typeof createFilter>
 
-const getTransformOptions = async (
+const getEsbuildTransformOptions = async (
   transformOptions: TransformOptions[],
   filters: Filter[],
   id: string
 ): Promise<EsbuildTransformOptions | null> => {
-  let resultTransformOptions: EsbuildTransformOptions | null = null
+  let esbuildTransformOptions: EsbuildTransformOptions | null = null
   for (let index = 0; index < transformOptions.length; index++) {
     if (!filters[index](id)) {
       continue
@@ -135,13 +135,13 @@ const getTransformOptions = async (
       const tsconfigPath = resolve(process.cwd(), tsconfig)
       restTransformOptions.tsconfigRaw = await fs.readFile(tsconfigPath, 'utf8')
     }
-    if (resultTransformOptions === null) {
-      resultTransformOptions = { loader, ...restTransformOptions }
+    if (esbuildTransformOptions === null) {
+      esbuildTransformOptions = { loader, ...restTransformOptions }
     } else {
-      Object.assign(resultTransformOptions, restTransformOptions)
+      Object.assign(esbuildTransformOptions, restTransformOptions)
     }
   }
-  return resultTransformOptions
+  return esbuildTransformOptions
 }
 
 interface HookReturn {
@@ -207,28 +207,36 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
     },
 
     async transform(code, id) {
-      const transformOptions = await getTransformOptions(inputTransformOptions, inputFilters, id)
-      if (transformOptions === null) {
+      const esbuildTransformOptions = await getEsbuildTransformOptions(
+        inputTransformOptions,
+        inputFilters,
+        id
+      )
+      if (esbuildTransformOptions === null) {
         return null
       }
       const transformResult = await transform(code, {
-        format: transformOptions.loader === 'json' ? 'esm' : undefined,
+        format: esbuildTransformOptions.loader === 'json' ? 'esm' : undefined,
         sourcefile: id,
         sourcemap: true,
-        ...transformOptions
+        ...esbuildTransformOptions
       })
       return await handleTransformResult(this, transformResult)
     },
 
-    async renderChunk(code, { fileName: id }, _options) {
-      const transformOptions = await getTransformOptions(outputTransformOptions, outputFilters, id)
-      if (transformOptions === null) {
+    async renderChunk(code, chunk, _options) {
+      const esbuildTransformOptions = await getEsbuildTransformOptions(
+        outputTransformOptions,
+        outputFilters,
+        chunk.fileName
+      )
+      if (esbuildTransformOptions === null) {
         return null
       }
       const transformResult = await transform(code, {
-        sourcefile: id,
+        sourcefile: chunk.fileName,
         sourcemap: _options.sourcemap !== false,
-        ...transformOptions
+        ...esbuildTransformOptions
       })
       return await handleTransformResult(this, transformResult)
     }
