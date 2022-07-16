@@ -58,13 +58,15 @@ export interface Options extends TransformOptions {
 type CommonOptions = Omit<Options, 'output'>
 
 const splitOptionsByType = (
-  options: Options[]
+  options: Options | Options[]
 ): [inputOptions: CommonOptions[], outputOptions: CommonOptions[]] => {
   const inputOptions: CommonOptions[] = []
   const outputOptions: CommonOptions[] = []
-  options.forEach(({ output = false, ...commonOptions }) => {
-    ;(output ? outputOptions : inputOptions).push(commonOptions)
-  })
+  ;(Array.isArray(options) ? options : [options]).forEach(
+    ({ output = false, ...commonOptions }) => {
+      ;(output ? outputOptions : inputOptions).push(commonOptions)
+    }
+  )
   return [inputOptions, outputOptions]
 }
 
@@ -195,9 +197,7 @@ const handleTransformResult = async (
 }
 
 function esbuildTransform(options: Options | Options[] = {}): Plugin {
-  const [inputOptions, outputOptions] = splitOptionsByType(
-    Array.isArray(options) ? options : [options]
-  )
+  const [inputOptions, outputOptions] = splitOptionsByType(options)
 
   const loaders = getLoaders(inputOptions)
   const extensions = getExtensions(loaders)
