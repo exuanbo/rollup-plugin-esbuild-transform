@@ -9,7 +9,7 @@
 
 ## Why
 
-[`esbuild`](https://esbuild.github.io/api/#build-api) as a bundler has some problems such as [#475](https://github.com/evanw/esbuild/issues/475) which has still not been fixed since last year.
+[`esbuild`](https://esbuild.github.io/api/#build-api) as a bundler has some problems such as [#475](https://github.com/evanw/esbuild/issues/475) which has still not been fixed since Oct, 2020.
 
 [`rollup-plugin-esbuild`](https://github.com/egoist/rollup-plugin-esbuild) is great but there is no simpler way to use multiple `loader` with different options, and for some reason it does not provide all available options from [esbuild transform API](https://esbuild.github.io/api/#transform-api).
 
@@ -134,7 +134,7 @@ It takes priority over `include`.
 // output: true
 {
   sourcefile: chunk.fileName,
-  sourcemap: rollupOutputOptions.sourcemap !== false,
+  sourcemap: rollupOptions.output.sourcemap !== false,
   ...options
 }
 ```
