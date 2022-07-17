@@ -1,3 +1,4 @@
+*.tgz
 .cache/
 .github/
 coverage/
@@ -6,3 +7,4 @@ rollup.config.js
 scripts/
 src/
 tsconfig.*json
+!__tests__/**/*
