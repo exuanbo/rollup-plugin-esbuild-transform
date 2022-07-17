@@ -1,6 +1,6 @@
 import { promises as fs } from 'fs'
 import { extname, join } from 'path'
-import { RollupOptions, RollupOutput, rollup } from 'rollup'
+import { Plugin, RollupOptions, RollupOutput, rollup } from 'rollup'
 import esbuild, { Options } from '../src'
 
 const fooPath = join(__dirname, 'fixtures/Foo.tsx')
@@ -15,7 +15,21 @@ afterAll(async () => {
   await fs.writeFile(fooPath, fooContent)
 })
 
-const build = async (
+const css = (): Plugin => {
+  return {
+    name: 'css',
+    transform(code, id) {
+      if (extname(id) === '.css') {
+        return {
+          code: `export default \`${code}\``
+        }
+      }
+      return null
+    }
+  }
+}
+
+const bundle = async (
   options?: Options | Options[],
   rollupOptions: RollupOptions = {}
 ): Promise<RollupOutput['output']> => {
@@ -23,28 +37,14 @@ const build = async (
     input: join(__dirname, 'fixtures/main.js'),
     ...rollupOptions,
     external: ['react', 'react-dom'],
-    plugins: [
-      esbuild(options),
-      {
-        name: 'css',
-        transform(code, id) {
-          if (extname(id) === '.css') {
-            return {
-              code: `export default \`${code}\``
-            }
-          }
-          return null
-        }
-      },
-      ...(rollupOptions.plugins ?? [])
-    ]
+    plugins: [...(rollupOptions.plugins ?? []), esbuild(options), css()]
   })
   const { output } = await build.generate({ format: 'es' })
   return output
 }
 
 it('should transform', async () => {
-  const output = await build([
+  const output = await bundle([
     {
       loader: 'json'
     },
@@ -93,7 +93,7 @@ it('should transform', async () => {
 })
 
 it('should transform and minify', async () => {
-  const output = await build([
+  const output = await bundle([
     {
       loader: 'json'
     },
@@ -121,7 +121,7 @@ it('should transform and minify', async () => {
 })
 
 it('should transform using tsconfig', async () => {
-  const output = await build([
+  const output = await bundle([
     {
       loader: 'json'
     },
@@ -168,7 +168,7 @@ it('should transform using tsconfig', async () => {
 })
 
 it('should transform and add banner', async () => {
-  const output = await build([
+  const output = await bundle([
     {
       loader: 'json'
     },
@@ -229,33 +229,34 @@ it('should transform and add banner', async () => {
 it('should throw error if id can not be resolve', async () => {
   expect.assertions(1)
   try {
-    await build()
+    await bundle()
   } catch (err) {
-    expect((err as Error).message).toMatchInlineSnapshot(
-      '"Could not resolve \'./Foo\' from __tests__/fixtures/main.js"'
-    )
+    if (err instanceof Error) {
+      expect(err.message).toMatchInlineSnapshot(
+        '"Could not resolve \'./Foo\' from __tests__/fixtures/main.js"'
+      )
+    }
   }
 })
 
 it('should warn', async () => {
   expect.assertions(1)
-  await build(
+  await bundle(
     {
+      loader: 'default',
       format: 'esm'
     },
     {
-      input: join(__dirname, 'fixtures/index.cjs'),
+      input: join(__dirname, 'fixtures/require.cjs'),
       onwarn(warning) {
-        expect(warning.message).toMatch(
-          '/rollup-plugin-esbuild-transform/__tests__/fixtures/index.cjs'
-        )
+        expect(warning.message).toMatch('Converting "require" to "esm" is currently not supported')
       }
     }
   )
 })
 
 it('should not generate sourcemap if option is set', async () => {
-  const output = await build(
+  const output = await bundle(
     {
       loader: 'json',
       sourcemap: false
@@ -270,25 +271,47 @@ it('should not generate sourcemap if option is set', async () => {
   expect(output[0].map).toBe(null)
 })
 
-it('should not transform exclude is set', async () => {
-  const output = await build(
+it('should match nothing if loader has no default extension', async () => {
+  expect.assertions(1)
+  try {
+    await bundle(
+      {
+        loader: 'dataurl'
+      },
+      {
+        input: join(__dirname, 'fixtures/imageImport.mjs')
+      }
+    )
+  } catch (err) {
+    if (err instanceof Error) {
+      expect(err.message).toMatchInlineSnapshot(
+        '"Unexpected character \'�\' (Note that you need plugins to import files that are not JavaScript)"'
+      )
+    }
+  }
+})
+
+const jsonFallback = (): Plugin => {
+  return {
+    name: 'json',
+    transform() {
+      return {
+        code: "export default 'This is a JSON file.'",
+        map: { mappings: '' }
+      }
+    }
+  }
+}
+
+it('should not transform if exclude is set', async () => {
+  const output = await bundle(
     {
       loader: 'json',
       exclude: /\.json$/
     },
     {
       input: join(__dirname, '../package.json'),
-      plugins: [
-        {
-          name: 'json',
-          transform() {
-            return {
-              code: "export default 'This is a JSON file.'",
-              map: { mappings: '' }
-            }
-          }
-        }
-      ]
+      plugins: [jsonFallback()]
     }
   )
   expect(output[0].code).toMatchInlineSnapshot(`
