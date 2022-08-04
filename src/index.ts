@@ -172,15 +172,15 @@ const getEsbuildTransformOptions = async (
   return esbuildTransformOptions
 }
 
-interface HookReturn {
+type HookReturnType = Promise<{
   code: string
-  map?: SourceMapInput
-}
+  map: SourceMapInput | undefined
+}>
 
 const handleTransformResult = async (
   pluginContext: PluginContext,
   { code, map, warnings }: TransformResult
-): Promise<HookReturn> => {
+): HookReturnType => {
   if (warnings.length > 0) {
     const messages = await formatMessages(warnings, {
       kind: 'warning',
