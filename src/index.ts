@@ -246,7 +246,7 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
       return await handleTransformResult(this, transformResult)
     },
 
-    async renderChunk(code, chunk, _options) {
+    async renderChunk(code, chunk) {
       const esbuildTransformOptions = await getEsbuildTransformOptions(
         outputTransformOptions,
         outputFilters,
@@ -257,7 +257,7 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
       }
       const transformResult = await transform(code, {
         sourcefile: chunk.fileName,
-        sourcemap: _options.sourcemap !== false,
+        sourcemap: true,
         ...esbuildTransformOptions
       })
       return await handleTransformResult(this, transformResult)
