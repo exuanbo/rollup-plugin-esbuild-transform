@@ -88,7 +88,7 @@ If `output: true`, then the options `include` and `exclude` will be applied to t
 
 ### `include`
 
-Default to <code>new RegExp(\`\\\\.\${loader}\$\`)</code> (supports `.cjs`, `.mjs`, `.cts`, `.mts`), or `undefined` (match any filename) if `output: true`.
+Default to <code>new RegExp(\`\\\\.(?:${loaderExtensions.join('|')})$\`)</code> (supports `.cjs`, `.mjs`, `.cts`, `.mts`), or `undefined` (match any filename) if `output: true`.
 
 If a file is matched by more than one pattern (as the example below), the options other than `loader` will be ***shallowly*** merged into and possibly override the previous ones.
 

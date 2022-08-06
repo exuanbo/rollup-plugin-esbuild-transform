@@ -40,7 +40,7 @@ export interface Options extends TransformOptions {
   /**
    * A valid [`picomatch`](https://github.com/micromatch/picomatch#globbing-features) glob pattern, or array of patterns.
    *
-   * @default RegExp(`\\.${loader}$`)
+   * @default RegExp(`\\.(?:${loaderExtensions.join('|')})$`)
    * @default undefined // if `output` is `true`
    * @see https://github.com/exuanbo/rollup-plugin-esbuild-transform#include
    */
