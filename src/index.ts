@@ -25,7 +25,7 @@ export interface TransformOptions extends EsbuildTransformOptions {
    * @default undefined
    * @see https://esbuild.github.io/content-types/#tsconfig-json
    */
-  tsconfig?: string
+  tsconfig?: string | undefined
 }
 
 export interface Options extends TransformOptions {
@@ -36,7 +36,7 @@ export interface Options extends TransformOptions {
    *
    * @default false
    */
-  output?: boolean
+  output?: boolean | undefined
   /**
    * A valid [`picomatch`](https://github.com/micromatch/picomatch#globbing-features) glob pattern, or array of patterns.
    *
@@ -44,7 +44,7 @@ export interface Options extends TransformOptions {
    * @default undefined // if `output` is `true`
    * @see https://github.com/exuanbo/rollup-plugin-esbuild-transform#include
    */
-  include?: FilterPattern
+  include?: FilterPattern | undefined
   /**
    * A valid [`picomatch`](https://github.com/micromatch/picomatch#globbing-features) glob pattern, or array of patterns.
    *
@@ -52,7 +52,7 @@ export interface Options extends TransformOptions {
    * @default undefined // if `output` is `true`
    * @see https://github.com/exuanbo/rollup-plugin-esbuild-transform#exclude
    */
-  exclude?: FilterPattern
+  exclude?: FilterPattern | undefined
 }
 
 type CommonOptions = Omit<Options, 'output'>
