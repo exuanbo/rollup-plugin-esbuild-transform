@@ -133,22 +133,22 @@ const JS_EXTENSIONS = getExtensions(['js'])
 const JS_EXTENSION_REGEXP = getExtensionRegExp(JS_EXTENSIONS)
 
 const resolveFilename = async (
-  filename: string,
+  resolvedPath: string,
   extensions: Extension[]
 ): Promise<string | null> => {
-  const parsedFilename = parse(filename)
-  if (parsedFilename.ext === '') {
+  const parsedPath = parse(resolvedPath)
+  if (parsedPath.ext === '') {
     for (const extension of extensions) {
-      const possibleFilename = `${filename}.${extension}`
+      const possibleFilename = `${resolvedPath}.${extension}`
       try {
         await fs.access(possibleFilename)
         return possibleFilename
       } catch {}
     }
   } else {
-    const isJsExtension = JS_EXTENSION_REGEXP.test(parsedFilename.ext)
+    const isJsExtension = JS_EXTENSION_REGEXP.test(parsedPath.ext)
     if (isJsExtension && extensions.includes('ts')) {
-      const basename = join(parsedFilename.dir, parsedFilename.name)
+      const basename = join(parsedPath.dir, parsedPath.name)
       for (const extension of extensions) {
         const possibleFilename = `${basename}.${extension}`
         try {
@@ -236,13 +236,13 @@ function esbuildTransform(options: Options | Options[] = {}): Plugin {
       if (importer === undefined || !(source.startsWith('.') || isAbsolute(source))) {
         return null
       }
-      const filename = resolve(dirname(importer), source)
+      const resolvedPath = resolve(dirname(importer), source)
       try {
-        return (await fs.stat(filename)).isDirectory()
-          ? await resolveFilename(join(filename, 'index'), scriptExtensions)
-          : filename
+        return (await fs.stat(resolvedPath)).isDirectory()
+          ? await resolveFilename(join(resolvedPath, 'index'), scriptExtensions)
+          : resolvedPath
       } catch {
-        return await resolveFilename(filename, extensions)
+        return await resolveFilename(resolvedPath, extensions)
       }
     },
 
