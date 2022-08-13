@@ -36,7 +36,7 @@ const bundle = async (
   const build = await rollup({
     input: join(__dirname, 'fixtures/main.js'),
     ...rollupOptions,
-    external: ['react', 'react-dom'],
+    external: ['react', 'react/jsx-runtime', 'react-dom'],
     plugins: [...(rollupOptions.plugins ?? []), esbuild(options), css()]
   })
   const { output } = await build.generate({ format: 'es' })
@@ -49,48 +49,37 @@ it('should transform', async () => {
       loader: 'json'
     },
     {
-      loader: 'tsx',
-      banner: "import React from 'react'"
+      loader: 'tsx'
     },
     {
       loader: 'ts'
     },
     {
-      loader: 'jsx'
+      loader: 'jsx',
+      include: /\.[jt]sx$/,
+      banner: "import React from 'react'"
     }
   ])
   expect(output[0].code).toMatchInlineSnapshot(`
     "import ReactDOM from 'react-dom';
-    import React$1 from 'react';
+    import React from 'react';
 
     var style = \`.bar {
       display: flex;
     }
     \`;
 
-    class Bar extends React$1.Component {
-      render() {
-        return /* @__PURE__ */ React$1.createElement(React$1.Fragment, null, /* @__PURE__ */ React$1.createElement(\\"style\\", null, style), /* @__PURE__ */ React$1.createElement(\\"div\\", {
-          className: \\"bar\\"
-        }, \\"bar\\"));
-      }
-    }
+    const Bar = () => /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(\\"style\\", null, style), /* @__PURE__ */ React.createElement(\\"div\\", {
+      className: \\"bar\\"
+    }, \\"bar\\"));
 
     const toUpperCase = (str) => str.toUpperCase();
 
     var name = \\"rollup-plugin-esbuild-transform\\";
 
-    class Foo extends React$1.Component {
-      constructor() {
-        super(...arguments);
-        this.displayName = \\"Foo\\";
-      }
-      render() {
-        return /* @__PURE__ */ React$1.createElement(\\"div\\", null, /* @__PURE__ */ React$1.createElement(Bar, null), /* @__PURE__ */ React$1.createElement(\\"div\\", {
-          className: \\"name\\"
-        }, toUpperCase(name)));
-      }
-    }
+    const Foo = () => /* @__PURE__ */ React.createElement(\\"div\\", null, /* @__PURE__ */ React.createElement(Bar, null), /* @__PURE__ */ React.createElement(\\"div\\", {
+      className: \\"name\\"
+    }, toUpperCase(name)));
 
     ReactDOM.render(React.createElement(Foo, null), document.getElementById('root'));
     "
@@ -107,14 +96,15 @@ it('should transform and minify', async () => {
       minify: true
     },
     {
-      loader: 'tsx',
-      banner: "import React from 'react'"
+      loader: 'tsx'
     },
     {
       loader: 'ts'
     },
     {
-      loader: 'jsx'
+      loader: 'jsx',
+      include: /\.[jt]sx$/,
+      banner: "import React from 'react'"
     },
     {
       output: true,
@@ -122,8 +112,8 @@ it('should transform and minify', async () => {
     }
   ])
   expect(output[0].code).toMatchInlineSnapshot(`
-    "import r from\\"react-dom\\";import e from\\"react\\";var n=\`.bar{display:flex}
-    \`;class a extends e.Component{render(){return e.createElement(e.Fragment,null,e.createElement(\\"style\\",null,n),e.createElement(\\"div\\",{className:\\"bar\\"},\\"bar\\"))}}const l=t=>t.toUpperCase();var m=\\"rollup-plugin-esbuild-transform\\";class s extends e.Component{constructor(){super(...arguments),this.displayName=\\"Foo\\"}render(){return e.createElement(\\"div\\",null,e.createElement(a,null),e.createElement(\\"div\\",{className:\\"name\\"},l(m)))}}r.render(React.createElement(s,null),document.getElementById(\\"root\\"));
+    "import l from\\"react-dom\\";import e from\\"react\\";var a=\`.bar{display:flex}
+    \`;const r=()=>e.createElement(e.Fragment,null,e.createElement(\\"style\\",null,a),e.createElement(\\"div\\",{className:\\"bar\\"},\\"bar\\")),n=t=>t.toUpperCase();var m=\\"rollup-plugin-esbuild-transform\\";const o=()=>e.createElement(\\"div\\",null,e.createElement(r,null),e.createElement(\\"div\\",{className:\\"name\\"},n(m)));l.render(e.createElement(o,null),document.getElementById(\\"root\\"));
     "
   `)
 })
@@ -135,45 +125,51 @@ it('should transform using tsconfig', async () => {
     },
     {
       loader: 'tsx',
-      banner: "import React from 'react'",
       tsconfig: join(__dirname, 'fixtures/tsconfig.json')
     },
     {
       loader: 'ts'
     },
     {
-      loader: 'jsx'
+      loader: 'jsx',
+      jsx: 'automatic'
     }
   ])
   expect(output[0].code).toMatchInlineSnapshot(`
     "import ReactDOM from 'react-dom';
-    import React$1 from 'react';
+    import React from 'react';
+    import { jsxs, Fragment, jsx } from 'react/jsx-runtime';
 
     var style = \`.bar {
       display: flex;
     }
     \`;
 
-    class Bar extends React$1.Component {
-      render() {
-        return /* @__PURE__ */ React$1.createElement(React$1.Fragment, null, /* @__PURE__ */ React$1.createElement(\\"style\\", null, style), /* @__PURE__ */ React$1.createElement(\\"div\\", {
-          className: \\"bar\\"
-        }, \\"bar\\"));
-      }
-    }
+    const Bar = () => /* @__PURE__ */ jsxs(Fragment, {
+      children: [
+        /* @__PURE__ */ jsx(\\"style\\", {
+          children: style
+        }),
+        /* @__PURE__ */ jsx(\\"div\\", {
+          className: \\"bar\\",
+          children: \\"bar\\"
+        })
+      ]
+    });
 
     const toUpperCase = (str) => str.toUpperCase();
 
     var name = \\"rollup-plugin-esbuild-transform\\";
 
-    class Foo extends React$1.Component {
-      displayName = \\"Foo\\";
-      render() {
-        return /* @__PURE__ */ React$1.createElement(\\"div\\", null, /* @__PURE__ */ React$1.createElement(Bar, null), /* @__PURE__ */ React$1.createElement(\\"div\\", {
-          className: \\"name\\"
-        }, toUpperCase(name)));
-      }
-    }
+    const Foo = () => /* @__PURE__ */ jsxs(\\"div\\", {
+      children: [
+        /* @__PURE__ */ jsx(Bar, {}),
+        /* @__PURE__ */ jsx(\\"div\\", {
+          className: \\"name\\",
+          children: toUpperCase(name)
+        })
+      ]
+    });
 
     ReactDOM.render(React.createElement(Foo, null), document.getElementById('root'));
     "
@@ -186,8 +182,7 @@ it('should transform and add banner', async () => {
       loader: 'json'
     },
     {
-      loader: 'tsx',
-      banner: "import React from 'react'"
+      loader: 'tsx'
     },
     {
       loader: 'ts'
@@ -197,12 +192,14 @@ it('should transform and add banner', async () => {
     },
     {
       include: /\.[jt]sx$/,
-      banner: '/**\n * @license MIT\n */'
+      banner: '/**\n * @license MIT\n */',
+      jsx: 'automatic'
     }
   ])
   expect(output[0].code).toMatchInlineSnapshot(`
     "import ReactDOM from 'react-dom';
-    import React$1 from 'react';
+    import React from 'react';
+    import { jsxs, Fragment, jsx } from 'react/jsx-runtime';
 
     var style = \`.bar {
       display: flex;
@@ -212,13 +209,17 @@ it('should transform and add banner', async () => {
     /**
      * @license MIT
      */
-    class Bar extends React$1.Component {
-      render() {
-        return /* @__PURE__ */ React$1.createElement(React$1.Fragment, null, /* @__PURE__ */ React$1.createElement(\\"style\\", null, style), /* @__PURE__ */ React$1.createElement(\\"div\\", {
-          className: \\"bar\\"
-        }, \\"bar\\"));
-      }
-    }
+    const Bar = () => /* @__PURE__ */ jsxs(Fragment, {
+      children: [
+        /* @__PURE__ */ jsx(\\"style\\", {
+          children: style
+        }),
+        /* @__PURE__ */ jsx(\\"div\\", {
+          className: \\"bar\\",
+          children: \\"bar\\"
+        })
+      ]
+    });
 
     const toUpperCase = (str) => str.toUpperCase();
 
@@ -227,17 +228,15 @@ it('should transform and add banner', async () => {
     /**
      * @license MIT
      */
-    class Foo extends React.Component {
-      constructor() {
-        super(...arguments);
-        this.displayName = \\"Foo\\";
-      }
-      render() {
-        return /* @__PURE__ */ React.createElement(\\"div\\", null, /* @__PURE__ */ React.createElement(Bar, null), /* @__PURE__ */ React.createElement(\\"div\\", {
-          className: \\"name\\"
-        }, toUpperCase(name)));
-      }
-    }
+    const Foo = () => /* @__PURE__ */ jsxs(\\"div\\", {
+      children: [
+        /* @__PURE__ */ jsx(Bar, {}),
+        /* @__PURE__ */ jsx(\\"div\\", {
+          className: \\"name\\",
+          children: toUpperCase(name)
+        })
+      ]
+    });
 
     ReactDOM.render(React.createElement(Foo, null), document.getElementById('root'));
     "
