@@ -36,7 +36,7 @@ export default {
       },
       {
         loader: 'tsx',
-        banner: "import React from 'react'"
+        legalComments: 'eof'
       },
       {
         loader: 'ts',
@@ -97,7 +97,7 @@ If a file is matched by more than one pattern (as the example below), the option
 [
   {
     loader: 'tsx',
-    banner: "import React from 'react'"
+    legalComments: 'eof'
   },
   {
     loader: 'ts',
@@ -109,7 +109,7 @@ If a file is matched by more than one pattern (as the example below), the option
 // the final transform options for `index.tsx` will become
 {
   loader: 'tsx',
-  banner: "import React from 'react'",
+  legalComments: 'eof',
   tsconfig: join(__dirname, 'tsconfig.json')
 }
 ```
@@ -134,7 +134,7 @@ It takes priority over `include`.
 // output: true
 {
   sourcefile: chunk.fileName,
-  sourcemap: rollupOptions.output.sourcemap !== false,
+  sourcemap: true,
   ...options
 }
 ```
