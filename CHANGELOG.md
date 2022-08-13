@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.5.0](https://github.com/exuanbo/rollup-plugin-esbuild-transform/compare/v1.4.1...v1.5.0) (2022-08-13)
+
+### Features
+
+- Support TypeScript 4.7 `"module": "Node16"` resolution.
+
+### Bug Fixes
+
+- In `renderChunk` hook, the default `sourcemap` option provided to esbuild `transform` function was set following the same Rollup output option, which does not make sense. It should by default always be `true` according to <https://rollupjs.org/guide/en/#source-code-transformations>.
+
 ## [1.4.1](https://github.com/exuanbo/rollup-plugin-esbuild-transform/compare/v1.4.0...v1.4.1) (2022-07-17)
 
 ### Bug Fixes
