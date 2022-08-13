@@ -53,6 +53,9 @@ it('should transform', async () => {
       banner: "import React from 'react'"
     },
     {
+      loader: 'ts'
+    },
+    {
       loader: 'jsx'
     }
   ])
@@ -73,6 +76,8 @@ it('should transform', async () => {
       }
     }
 
+    const toUpperCase = (str) => str.toUpperCase();
+
     var name = \\"rollup-plugin-esbuild-transform\\";
 
     class Foo extends React$1.Component {
@@ -83,7 +88,7 @@ it('should transform', async () => {
       render() {
         return /* @__PURE__ */ React$1.createElement(\\"div\\", null, /* @__PURE__ */ React$1.createElement(Bar, null), /* @__PURE__ */ React$1.createElement(\\"div\\", {
           className: \\"name\\"
-        }, name));
+        }, toUpperCase(name)));
       }
     }
 
@@ -106,6 +111,9 @@ it('should transform and minify', async () => {
       banner: "import React from 'react'"
     },
     {
+      loader: 'ts'
+    },
+    {
       loader: 'jsx'
     },
     {
@@ -115,7 +123,7 @@ it('should transform and minify', async () => {
   ])
   expect(output[0].code).toMatchInlineSnapshot(`
     "import r from\\"react-dom\\";import e from\\"react\\";var n=\`.bar{display:flex}
-    \`;class l extends e.Component{render(){return e.createElement(e.Fragment,null,e.createElement(\\"style\\",null,n),e.createElement(\\"div\\",{className:\\"bar\\"},\\"bar\\"))}}var a=\\"rollup-plugin-esbuild-transform\\";class m extends e.Component{constructor(){super(...arguments),this.displayName=\\"Foo\\"}render(){return e.createElement(\\"div\\",null,e.createElement(l,null),e.createElement(\\"div\\",{className:\\"name\\"},a))}}r.render(React.createElement(m,null),document.getElementById(\\"root\\"));
+    \`;class a extends e.Component{render(){return e.createElement(e.Fragment,null,e.createElement(\\"style\\",null,n),e.createElement(\\"div\\",{className:\\"bar\\"},\\"bar\\"))}}const l=t=>t.toUpperCase();var m=\\"rollup-plugin-esbuild-transform\\";class s extends e.Component{constructor(){super(...arguments),this.displayName=\\"Foo\\"}render(){return e.createElement(\\"div\\",null,e.createElement(a,null),e.createElement(\\"div\\",{className:\\"name\\"},l(m)))}}r.render(React.createElement(s,null),document.getElementById(\\"root\\"));
     "
   `)
 })
@@ -129,6 +137,9 @@ it('should transform using tsconfig', async () => {
       loader: 'tsx',
       banner: "import React from 'react'",
       tsconfig: join(__dirname, 'fixtures/tsconfig.json')
+    },
+    {
+      loader: 'ts'
     },
     {
       loader: 'jsx'
@@ -151,6 +162,8 @@ it('should transform using tsconfig', async () => {
       }
     }
 
+    const toUpperCase = (str) => str.toUpperCase();
+
     var name = \\"rollup-plugin-esbuild-transform\\";
 
     class Foo extends React$1.Component {
@@ -158,7 +171,7 @@ it('should transform using tsconfig', async () => {
       render() {
         return /* @__PURE__ */ React$1.createElement(\\"div\\", null, /* @__PURE__ */ React$1.createElement(Bar, null), /* @__PURE__ */ React$1.createElement(\\"div\\", {
           className: \\"name\\"
-        }, name));
+        }, toUpperCase(name)));
       }
     }
 
@@ -175,6 +188,9 @@ it('should transform and add banner', async () => {
     {
       loader: 'tsx',
       banner: "import React from 'react'"
+    },
+    {
+      loader: 'ts'
     },
     {
       loader: 'jsx'
@@ -204,6 +220,8 @@ it('should transform and add banner', async () => {
       }
     }
 
+    const toUpperCase = (str) => str.toUpperCase();
+
     var name = \\"rollup-plugin-esbuild-transform\\";
 
     /**
@@ -217,7 +235,7 @@ it('should transform and add banner', async () => {
       render() {
         return /* @__PURE__ */ React.createElement(\\"div\\", null, /* @__PURE__ */ React.createElement(Bar, null), /* @__PURE__ */ React.createElement(\\"div\\", {
           className: \\"name\\"
-        }, name));
+        }, toUpperCase(name)));
       }
     }
 
@@ -230,9 +248,9 @@ it('should throw error if id can not be resolve', async () => {
   expect.assertions(1)
   try {
     await bundle()
-  } catch (err) {
-    if (err instanceof Error) {
-      expect(err.message).toMatchInlineSnapshot(
+  } catch (error) {
+    if (error instanceof Error) {
+      expect(error.message).toMatchInlineSnapshot(
         '"Could not resolve \'./Foo\' from __tests__/fixtures/main.js"'
       )
     }
@@ -279,12 +297,12 @@ it('should match nothing if loader has no default extension', async () => {
         loader: 'dataurl'
       },
       {
-        input: join(__dirname, 'fixtures/imageImport.mjs')
+        input: join(__dirname, 'fixtures/image.mjs')
       }
     )
-  } catch (err) {
-    if (err instanceof Error) {
-      expect(err.message).toMatchInlineSnapshot(
+  } catch (error) {
+    if (error instanceof Error) {
+      expect(error.message).toMatchInlineSnapshot(
         '"Unexpected character \'�\' (Note that you need plugins to import files that are not JavaScript)"'
       )
     }

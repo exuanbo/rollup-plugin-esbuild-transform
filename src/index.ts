@@ -1,5 +1,5 @@
 import { promises as fs } from 'fs'
-import { dirname, isAbsolute, join, resolve } from 'path'
+import { dirname, isAbsolute, join, parse, resolve } from 'path'
 import {
   Loader as EsbuildLoader,
   TransformOptions as EsbuildTransformOptions,
@@ -129,16 +129,34 @@ const getInputFilters = (options: CommonOptions[]): Filter[] =>
 const getOutputFilters = (options: CommonOptions[]): Filter[] =>
   options.map(({ include, exclude }) => createFilter(include, exclude))
 
+const JS_EXTENSIONS = getExtensions(['js'])
+const JS_EXTENSION_REGEXP = getExtensionRegExp(JS_EXTENSIONS)
+
 const resolveFilename = async (
-  basename: string,
+  filename: string,
   extensions: Extension[]
 ): Promise<string | null> => {
-  for (const extension of extensions) {
-    const possibleFilename = `${basename}.${extension}`
-    try {
-      await fs.access(possibleFilename)
-      return possibleFilename
-    } catch {}
+  const parsedFilename = parse(filename)
+  if (parsedFilename.ext === '') {
+    for (const extension of extensions) {
+      const possibleFilename = `${filename}.${extension}`
+      try {
+        await fs.access(possibleFilename)
+        return possibleFilename
+      } catch {}
+    }
+  } else {
+    const isJsExtension = JS_EXTENSION_REGEXP.test(parsedFilename.ext)
+    if (isJsExtension && extensions.includes('ts')) {
+      const basename = join(parsedFilename.dir, parsedFilename.name)
+      for (const extension of extensions) {
+        const possibleFilename = `${basename}.${extension}`
+        try {
+          await fs.access(possibleFilename)
+          return possibleFilename
+        } catch {}
+      }
+    }
   }
   return null
 }
