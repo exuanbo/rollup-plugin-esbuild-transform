@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-esbuild-transform",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Use esbuild with Rollup to transform any supported content types.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
