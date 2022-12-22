@@ -3,7 +3,7 @@
 > Use [`esbuild`](https://esbuild.github.io/api/#transform-api) with Rollup to transform any supported content types.
 
 [![npm](https://img.shields.io/npm/v/rollup-plugin-esbuild-transform.svg)](https://www.npmjs.com/package/rollup-plugin-esbuild-transform)
-[![GitHub Workflow Status (branch)](https://img.shields.io/github/workflow/status/exuanbo/rollup-plugin-esbuild-transform/Node.js%20CI/main.svg)](https://github.com/exuanbo/rollup-plugin-esbuild-transform/actions?query=workflow)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/exuanbo/rollup-plugin-esbuild-transform/nodejs.yml.svg?branch=main)](https://github.com/exuanbo/rollup-plugin-esbuild-transform/actions?query=workflow)
 [![Codecov branch](https://img.shields.io/codecov/c/gh/exuanbo/rollup-plugin-esbuild-transform/main.svg?token=hyLDj7tMfT)](https://app.codecov.io/gh/exuanbo/rollup-plugin-esbuild-transform/)
 [![libera manifesto](https://img.shields.io/badge/libera-manifesto-lightgrey.svg)](https://liberamanifesto.com)
 
